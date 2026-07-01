@@ -21,8 +21,8 @@
     <nav class="nav" id="nav">
       <a href="#sobre">Sobre</a>
       <a href="#servicos">Serviços</a>
-      <a href="#processo">Processo</a>
-      <a href="#diferenciais">Diferenciais</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">FAQ</a>
       <a href="#contato" class="nav__cta">Falar agora</a>
     </nav>
     <button class="nav-toggle" id="navToggle" aria-label="Abrir menu">
@@ -34,18 +34,56 @@
 <main>
 
   <section class="hero" id="top">
-    <div class="container hero__inner">
-      <p class="eyebrow reveal">Growth Marketing · Dados · Automação</p>
-      <h1 class="reveal">Estruturo operações de marketing que <span class="highlight">escalam com processos</span>, não com esforço manual.</h1>
-      <p class="hero__lead reveal">Ajudo empresas a crescer com Tráfego Pago, CRM, Automação e Ciência de Dados integrados — do planejamento estratégico à execução técnica, com foco em ROI mensurável.</p>
-      <div class="hero__actions reveal">
-        <a href="#contato" class="btn btn--primary">Solicitar diagnóstico gratuito</a>
-        <a href="#servicos" class="btn btn--ghost">Ver serviços</a>
+    <div class="container hero__grid">
+      <div>
+        <p class="eyebrow reveal">Growth Marketing · Dados · Automação</p>
+        <h1 class="reveal">Estruturo operações de marketing que <span class="highlight">escalam com processos</span>, não com esforço manual.</h1>
+        <p class="hero__lead reveal">Ajudo empresas a crescer com Tráfego Pago, CRM, Automação e Ciência de Dados integrados — do planejamento estratégico à execução técnica, com foco em ROI mensurável.</p>
+        <div class="hero__actions reveal">
+          <a href="#contato" class="btn btn--primary">Solicitar diagnóstico gratuito</a>
+          <a href="#planos" class="btn btn--ghost">Ver planos</a>
+        </div>
+        <div class="hero__stats reveal">
+          <div class="stat"><strong>+10</strong><span>competências técnicas integradas</span></div>
+          <div class="stat"><strong>360°</strong><span>marketing, dados e automação</span></div>
+          <div class="stat"><strong>100%</strong><span>orientado a KPIs e ROI</span></div>
+        </div>
       </div>
-      <div class="hero__stats reveal">
-        <div class="stat"><strong>+10</strong><span>competências técnicas integradas</span></div>
-        <div class="stat"><strong>360°</strong><span>marketing, dados e automação</span></div>
-        <div class="stat"><strong>100%</strong><span>orientado a KPIs e ROI</span></div>
+
+      <div class="placar reveal">
+        <div class="placar__header">
+          <span class="placar__title">Painel de resultados</span>
+          <span class="placar__live"><span class="placar__dot"></span>Ao vivo</span>
+        </div>
+        <div class="placar__grid">
+          <div class="placar__card">
+            <div class="placar__label">Novos contatos este mês</div>
+            <div class="placar__value" id="m-leads">0</div>
+            <div class="placar__delta" id="m-leads-delta"></div>
+          </div>
+          <div class="placar__card">
+            <div class="placar__label">Custo por novo contato</div>
+            <div class="placar__value">R$<span id="m-cpl">0</span></div>
+            <div class="placar__delta" id="m-cpl-delta"></div>
+          </div>
+          <div class="placar__card">
+            <div class="placar__label">Buscas no Google</div>
+            <div class="placar__value" id="m-buscas">0</div>
+            <div class="placar__delta" id="m-buscas-delta"></div>
+          </div>
+          <div class="placar__card">
+            <div class="placar__label">Retorno sobre investimento</div>
+            <div class="placar__value"><span id="m-roas">0</span>×</div>
+            <div class="placar__delta" id="m-roas-delta"></div>
+          </div>
+        </div>
+        <div class="placar__bars">
+          <div class="placar__bar-label"><span>Meta do mês</span><span id="m-meta-pct">0%</span></div>
+          <div class="placar__bar-track"><div class="placar__bar-fill" id="m-meta-bar"></div></div>
+          <div class="placar__bar-label"><span>Orçamento usado</span><span id="m-orc-pct">0%</span></div>
+          <div class="placar__bar-track"><div class="placar__bar-fill placar__bar-fill--alt" id="m-orc-bar"></div></div>
+        </div>
+        <p class="placar__updated">Atualizado em <span id="m-updated">—</span> · dados reais de clientes</p>
       </div>
     </div>
   </section>
@@ -81,7 +119,33 @@
     </div>
   </section>
 
-  <section class="section section--alt" id="servicos">
+  <section class="section section--alt" id="resultados">
+    <div class="container">
+      <p class="section-label reveal">Resultados reais</p>
+      <h2 class="reveal">Números que interessam a quem decide.</h2>
+      <p class="section-text reveal">Não é sobre curtida ou alcance. É sobre novos contatos e retorno sobre o que foi investido.</p>
+      <div class="numeros-grid reveal">
+        <div class="numero-card">
+          <div class="numero-valor" id="r1-valor">—</div>
+          <div class="numero-label" id="r1-label"></div>
+        </div>
+        <div class="numero-card">
+          <div class="numero-valor" id="r2-valor">—</div>
+          <div class="numero-label" id="r2-label"></div>
+        </div>
+        <div class="numero-card">
+          <div class="numero-valor" id="r3-valor">—</div>
+          <div class="numero-label" id="r3-label"></div>
+        </div>
+        <div class="numero-card">
+          <div class="numero-valor" id="r4-valor">—</div>
+          <div class="numero-label" id="r4-label"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="servicos">
     <div class="container">
       <p class="section-label reveal">Serviços</p>
       <h2 class="reveal">Onde eu ajudo a gerar resultado.</h2>
@@ -138,7 +202,130 @@
     </div>
   </section>
 
-  <section class="section" id="processo">
+  <section class="section section--alt pacotes" id="planos">
+    <div class="container">
+      <p class="section-label reveal">Planos mensais</p>
+      <h2 class="reveal">Gestão contínua, com escopo e preço fechados.</h2>
+      <p class="section-text reveal">Escolha o nível de gestão que faz sentido para o momento do seu negócio. Todos os planos mensais têm mínimo de 3 meses.</p>
+
+      <div class="pacotes-grid reveal">
+        <div class="pacote-card">
+          <div class="pacote-nome">Presença</div>
+          <div class="pacote-preco">R$ 600 <span>/ mês</span></div>
+          <p class="pacote-desc">Para negócios que querem aparecer melhor no Google sem investir em anúncios agora.</p>
+          <ul class="pacote-items">
+            <li><span class="check">✓</span> Google Business gerenciado</li>
+            <li><span class="check">✓</span> Posts semanais no perfil</li>
+            <li><span class="check">✓</span> Resposta a avaliações</li>
+            <li><span class="check">✓</span> Resumo mensal via WhatsApp</li>
+            <li class="item-off"><span>✗</span> Não produzimos criativos</li>
+          </ul>
+          <a href="https://wa.me/5581999366017?text=Oi%20Anderson%2C%20quero%20contratar%20o%20plano%20Presen%C3%A7a" target="_blank" rel="noopener" class="pacote-cta pacote-cta--outline">Contratar agora</a>
+        </div>
+
+        <div class="pacote-card">
+          <div class="pacote-nome">Básico</div>
+          <div class="pacote-preco">R$ 1.500 <span>/ mês</span></div>
+          <p class="pacote-desc">Para quem está pronto para anunciar e quer gestão profissional com relatório mensal.</p>
+          <ul class="pacote-items">
+            <li><span class="check">✓</span> Tráfego pago (1 plataforma)</li>
+            <li><span class="check">✓</span> Até 2 campanhas ativas</li>
+            <li><span class="check">✓</span> Relatório PDF mensal</li>
+            <li><span class="check">✓</span> Reunião mensal (30 min)</li>
+            <li><span class="check">✓</span> Suporte WhatsApp (24h)</li>
+            <li class="item-off"><span>✗</span> Não produzimos criativos</li>
+          </ul>
+          <a href="https://wa.me/5581999366017?text=Oi%20Anderson%2C%20quero%20contratar%20o%20plano%20B%C3%A1sico" target="_blank" rel="noopener" class="pacote-cta pacote-cta--outline">Contratar agora</a>
+        </div>
+
+        <div class="pacote-card pacote-card--popular">
+          <div class="pacote-badge">Mais escolhido</div>
+          <div class="pacote-nome">Growth</div>
+          <div class="pacote-preco">R$ 3.000 <span>/ mês</span></div>
+          <p class="pacote-desc">Gestão completa com dashboard, Google Business e acompanhamento de dados todo mês.</p>
+          <ul class="pacote-items">
+            <li><span class="check">✓</span> Tráfego pago (Meta ou Google)</li>
+            <li><span class="check">✓</span> Google Business gerenciado</li>
+            <li><span class="check">✓</span> Dashboard no Looker Studio</li>
+            <li><span class="check">✓</span> Reunião mensal (60 min)</li>
+            <li><span class="check">✓</span> Suporte prioritário (12h)</li>
+            <li class="item-off"><span>✗</span> Não produzimos criativos</li>
+          </ul>
+          <a href="https://wa.me/5581999366017?text=Oi%20Anderson%2C%20quero%20contratar%20o%20plano%20Growth" target="_blank" rel="noopener" class="pacote-cta pacote-cta--solid">Contratar agora</a>
+        </div>
+
+        <div class="pacote-card">
+          <div class="pacote-nome">Performance</div>
+          <div class="pacote-preco pacote-preco--custom">Personalizado</div>
+          <p class="pacote-desc">Estratégia integrada para negócios maiores e e-commerces. Escopo e valor definidos juntos.</p>
+          <ul class="pacote-items">
+            <li><span class="check">✓</span> Meta Ads + Google Ads</li>
+            <li><span class="check">✓</span> Rastreamento avançado (GTM)</li>
+            <li><span class="check">✓</span> Dashboard personalizado</li>
+            <li><span class="check">✓</span> CRM e automação</li>
+            <li><span class="check">✓</span> 1 reunião/mês (60 min)</li>
+          </ul>
+          <a href="https://wa.me/5581999366017?text=Oi%20Anderson%2C%20quero%20conversar%20sobre%20o%20plano%20Performance" target="_blank" rel="noopener" class="pacote-cta pacote-cta--outline">Conversar agora</a>
+        </div>
+      </div>
+      <p class="pacotes-nota reveal">* Investimento em mídia (Meta/Google) não está incluso nos planos — vai direto da sua conta para a plataforma. Mínimo recomendado: R$ 1.500/mês. · Atendimento remoto para todo o Brasil.</p>
+    </div>
+  </section>
+
+  <section class="section avulsos" id="avulsos">
+    <div class="container">
+      <p class="section-label reveal">Serviços pontuais</p>
+      <h2 class="reveal">Precisa de algo específico?</h2>
+      <p class="section-text reveal">Contratação única, sem mensalidade. Ideal para resolver um problema concreto agora ou estruturar a base antes de um plano mensal.</p>
+      <div class="avulsos-grid reveal">
+        <div class="avulso-card avulso-card--destaque">
+          <div class="avulso-nome avulso-nome--destaque">Starter — Presença digital</div>
+          <p class="avulso-desc">Google Business otimizado + auditoria completa + GA4 configurado + relatório de oportunidades. O ponto de partida para quem ainda não investe em anúncios.</p>
+          <div class="avulso-preco">R$ 2.100</div>
+          <div class="avulso-prazo">Entrega em 7–10 dias úteis</div>
+          <a href="https://wa.me/5581999366017?text=Oi%20Anderson%2C%20quero%20contratar%20o%20pacote%20Starter" target="_blank" rel="noopener" class="avulso-link">Contratar agora →</a>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Google Business Profile</div>
+          <p class="avulso-desc">Configuração e otimização completa do perfil — categorias, fotos, horários, palavras-chave e primeira publicação.</p>
+          <div class="avulso-preco">R$ 600 – 1.200</div>
+          <div class="avulso-prazo">Entrega em 5–7 dias úteis</div>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Auditoria digital</div>
+          <p class="avulso-desc">Diagnóstico completo do seu site, perfil no Google, redes sociais e rastreamento. Relatório com oportunidades priorizadas.</p>
+          <div class="avulso-preco">R$ 800 – 1.500</div>
+          <div class="avulso-prazo">Entrega em 3–5 dias úteis</div>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Setup GA4 + Tag Manager</div>
+          <p class="avulso-desc">Configuração completa de rastreamento: eventos, conversões, funil de aquisição e integração com Meta e Google Ads.</p>
+          <div class="avulso-preco">R$ 1.500 – 3.000</div>
+          <div class="avulso-prazo">Entrega em 7–14 dias úteis</div>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Dashboard Looker Studio</div>
+          <p class="avulso-desc">Painel visual personalizado com suas métricas de negócio — atualização automática, acesso permanente e sem custo recorrente.</p>
+          <div class="avulso-preco">R$ 1.200 – 2.500</div>
+          <div class="avulso-prazo">Entrega em 5–10 dias úteis</div>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Automação de e-mail</div>
+          <p class="avulso-desc">Fluxos automáticos de boas-vindas, nutrição e recuperação de leads — configurados na ferramenta que você já usa.</p>
+          <div class="avulso-preco">R$ 1.500 – 3.000</div>
+          <div class="avulso-prazo">Entrega em 10–20 dias úteis</div>
+        </div>
+        <div class="avulso-card">
+          <div class="avulso-nome">Implantação de CRM</div>
+          <p class="avulso-desc">Configuração de CRM, segmentação de base e automações essenciais para organizar sua carteira de clientes.</p>
+          <div class="avulso-preco">R$ 2.000 – 4.500</div>
+          <div class="avulso-prazo">Entrega em 15–25 dias úteis</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="processo">
     <div class="container">
       <p class="section-label reveal">Como trabalho</p>
       <h2 class="reveal">Um processo estruturado, do diagnóstico à otimização contínua.</h2>
@@ -167,7 +354,7 @@
     </div>
   </section>
 
-  <section class="section section--alt" id="diferenciais">
+  <section class="section" id="diferenciais">
     <div class="container">
       <p class="section-label reveal">Diferenciais</p>
       <h2 class="reveal">Por que trabalhar comigo.</h2>
@@ -192,20 +379,132 @@
     </div>
   </section>
 
-  <section class="section contact" id="contato">
-    <div class="container contact__inner">
-      <p class="section-label reveal">Contato</p>
-      <h2 class="reveal">Vamos estruturar o crescimento do seu negócio.</h2>
-      <p class="section-text reveal">Me conte um pouco sobre seu desafio atual — tráfego pago, CRM, dados ou automação — e retorno com os próximos passos.</p>
-      <div class="contact-actions reveal">
-        <a href="mailto:andersoncavalcantimm@gmail.com?subject=Contato%20via%20site" class="btn btn--primary">
-          Enviar e-mail
-        </a>
-        <a href="https://wa.me/55SEUNUMEROAQUI" class="btn btn--ghost" id="whatsappLink">
-          Falar no WhatsApp
-        </a>
+  <section class="section section--alt faq" id="faq">
+    <div class="container">
+      <p class="section-label reveal">Perguntas frequentes</p>
+      <h2 class="reveal">Tire suas dúvidas antes de começar.</h2>
+      <div class="faq-list reveal">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Preciso ter um site para começar?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">Não necessariamente. Para Google Business, um site ajuda mas não é obrigatório. Para tráfego pago, precisamos de algum destino para os anúncios — pode ser um WhatsApp, uma landing page simples ou um site. A gente avalia isso no diagnóstico gratuito.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Quanto preciso investir além da mensalidade?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">O investimento mínimo em mídia que recomendo é R$ 1.500/mês — esse valor vai direto para o Google ou Meta, não para mim. Abaixo disso o algoritmo não tem volume suficiente para otimizar e os resultados ficam inconsistentes.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Em quanto tempo vejo resultados?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">Google Business costuma mostrar resultado em 2 a 4 semanas. Tráfego pago tem um período de aprendizado de 2 a 4 semanas antes de estabilizar. No geral, o segundo mês já mostra um cenário mais claro — e a otimização continua a partir daí.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Tenho contrato de fidelidade?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">Os pacotes mensais têm mínimo de 3 meses porque esse é o tempo necessário para o algoritmo aprender e para os dados fazerem sentido. Após esse período, o contrato é mensal com aviso de 30 dias para encerramento. Sem multa, sem enrolação.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Você cria os anúncios e criativos?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">Meu foco é estratégia, gestão e resultados — não produção criativa. Para imagens e vídeos, oriento o que funciona e posso indicar bons parceiros de design e produção. Anúncios de texto e copy eu faço, estáticos e vídeos ficam com você ou um parceiro criativo.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">
+            Para que tipo de negócio isso funciona melhor?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <div class="faq-a">Clínicas, consultórios, academias, escolas, restaurantes, escritórios de serviços profissionais e outros negócios locais com ticket médio-alto, além de empresas que precisam estruturar dados, CRM e automação internamente. Se você quer crescer de forma previsível e mensurável, a gente tem bastante conversa.</div>
+        </div>
       </div>
-      <p class="contact-email reveal">andersoncavalcantimm@gmail.com</p>
+    </div>
+  </section>
+
+  <section class="section contact" id="contato">
+    <div class="container">
+      <div class="contact__grid">
+        <div class="contact__info reveal">
+          <p class="section-label">Contato</p>
+          <h2>Vamos conversar sobre o seu negócio.</h2>
+          <p class="section-text">Preencha o formulário e eu entro em contato em até 1 dia útil. Sem pressão, sem script de vendas — só uma conversa honesta sobre o que faz sentido para você.</p>
+          <div class="contact__item">
+            <span class="contact__icon">✆</span>
+            <span>WhatsApp: <a href="https://wa.me/5581999366017" target="_blank" rel="noopener">(81) 99936-6017</a></span>
+          </div>
+          <div class="contact__item">
+            <span class="contact__icon">✉</span>
+            <span>E-mail: <a href="mailto:contato@andersoncavalcanti.com.br">contato@andersoncavalcanti.com.br</a></span>
+          </div>
+          <div class="contact__item">
+            <span class="contact__icon">◔</span>
+            <span>Respondo em até 1 dia útil</span>
+          </div>
+        </div>
+
+        <div class="contact__form reveal">
+          <div id="form-body">
+            <div class="form-row">
+              <label for="f-nome">Seu nome</label>
+              <input type="text" id="f-nome" placeholder="João Silva" autocomplete="name">
+            </div>
+            <div class="form-row">
+              <label for="f-negocio">Nome do negócio</label>
+              <input type="text" id="f-negocio" placeholder="Clínica São Paulo">
+            </div>
+            <div class="form-row">
+              <label for="f-whats">WhatsApp</label>
+              <input type="tel" id="f-whats" placeholder="(11) 99999-9999" autocomplete="tel">
+            </div>
+            <div class="form-row">
+              <label for="f-email">E-mail</label>
+              <input type="email" id="f-email" placeholder="joao@clinica.com.br" autocomplete="email">
+            </div>
+            <div class="form-row">
+              <label for="f-interesse">Tenho interesse em</label>
+              <select id="f-interesse">
+                <option value="" disabled selected>Selecione uma opção</option>
+                <optgroup label="Planos mensais">
+                  <option>Plano Presença — R$ 600/mês</option>
+                  <option>Plano Básico — R$ 1.500/mês</option>
+                  <option>Plano Growth — R$ 3.000/mês</option>
+                  <option>Plano Performance — personalizado</option>
+                </optgroup>
+                <optgroup label="Serviços pontuais">
+                  <option>Starter — Presença digital (R$ 2.100)</option>
+                  <option>Google Business Profile</option>
+                  <option>Auditoria digital</option>
+                  <option>Setup GA4 + Tag Manager</option>
+                  <option>Dashboard Looker Studio</option>
+                  <option>Automação de e-mail</option>
+                  <option>Implantação de CRM</option>
+                </optgroup>
+                <option>Diagnóstico gratuito primeiro</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="f-msg">Conte um pouco sobre o seu negócio <span class="form-optional">(opcional)</span></label>
+              <textarea id="f-msg" placeholder="Tipo de negócio, cidade, principal desafio hoje..."></textarea>
+            </div>
+            <button class="btn btn--primary form-submit" onclick="submitForm()">Enviar mensagem</button>
+            <p class="form-note">Seus dados não são compartilhados com terceiros.</p>
+          </div>
+          <div id="form-success" class="form-success">
+            <h3>Obrigado, <span id="success-nome">!</span></h3>
+            <p>Recebi sua mensagem e retorno em até 1 dia útil. Se preferir, fale comigo agora pelo WhatsApp.</p>
+            <a href="https://wa.me/5581999366017" target="_blank" rel="noopener" class="btn btn--ghost">Falar no WhatsApp</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
