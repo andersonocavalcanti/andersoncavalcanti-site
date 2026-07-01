@@ -1,0 +1,17 @@
+{
+  "atualizadoEm": "2026-07-01",
+  "placar": {
+    "leads":  { "valor": 187,  "delta": "↑ 34% vs mês anterior" },
+    "cpl":    { "valor": 24,   "delta": "↓ 18% vs mês anterior" },
+    "buscas": { "valor": 1340, "delta": "↑ 61% em 30 dias" },
+    "roas":   { "valor": 3.8,  "delta": "ROAS médio dos clientes" }
+  },
+  "metaMesPct": 78,
+  "orcamentoUsadoPct": 54,
+  "resultados": [
+    { "valor": "3,8×",  "label": "retorno médio sobre o investimento em mídia" },
+    { "valor": "-31%",  "label": "queda no custo por lead após 60 dias de otimização" },
+    { "valor": "+220%", "label": "aumento médio de buscas no Google Business em 90 dias" },
+    { "valor": "48h",   "label": "tempo médio para o perfil no Google já estar otimizado" }
+  ]
+}
