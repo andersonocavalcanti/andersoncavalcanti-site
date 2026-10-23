@@ -87,6 +87,9 @@ input:focus,select:focus{border-color:var(--pine);outline:none;box-shadow:0 0 0 
 .code-input{font-family:var(--mono);letter-spacing:.4em;font-size:1.2rem;text-align:center;max-width:220px}
 .who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
 .who b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.welcome{display:grid;gap:14px}
+.welcome-sub{color:var(--muted);max-width:60ch}
+.welcome .inline .btn{min-width:160px}
 .grid-profile{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
 .grid-profile .full{grid-column:1/-1}
 .items{display:grid;gap:10px}
@@ -164,10 +167,10 @@ footer{color:var(--muted);font-size:.8rem;text-align:center}
   <section class="panel" aria-labelledby="meTitle">
     <div class="panel-head">
       <div>
-        <p class="eyebrow">Sua lista</p>
+        <p class="eyebrow" id="meEyebrow">Sua lista</p>
         <h2 id="meTitle">Monte a sua lista de presentes</h2>
       </div>
-      <div class="who" id="who" hidden>Conectado como <b id="whoEmail"></b>
+      <div class="who" id="who" hidden>
         <button class="btn ghost" type="button" id="logoutBtn">Sair</button>
       </div>
     </div>
@@ -197,7 +200,17 @@ footer{color:var(--muted);font-size:.8rem;text-align:center}
       <p class="status" id="codeStatus"></p>
     </form>
 
-    <!-- Passo 3: editor -->
+    <!-- Passo 3: boas-vindas -->
+    <div class="welcome" id="welcome" hidden>
+      <p class="welcome-sub" id="welcomeSub"></p>
+      <div class="inline">
+        <button class="btn primary" type="button" id="goListsBtn">Ver listas</button>
+        <button class="btn" type="button" id="toggleEditBtn" aria-controls="editor" aria-expanded="false">Editar minha lista</button>
+      </div>
+      <p class="status" id="welcomeStatus"></p>
+    </div>
+
+    <!-- Passo 4: editor (abre pelo botão) -->
     <form id="editor" hidden>
       <div style="display:grid;gap:18px">
         <div class="legend" aria-label="Legenda de prioridade">
@@ -366,9 +379,31 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyrHDc8ZFofkC_3z4vws6zH
   function show(step){
     $("stepEmail").hidden = step!=="email";
     $("stepCode").hidden = step!=="code";
-    $("editor").hidden = step!=="editor";
+    $("welcome").hidden = step!=="editor";
+    $("editor").hidden = !(step==="editor" && S.editing);
     $("who").hidden = step!=="editor";
+    $("toggleEditBtn").hidden = !S.me;
+    $("toggleEditBtn").textContent = S.editing ? "Fechar edição" : "Editar minha lista";
+    $("toggleEditBtn").setAttribute("aria-expanded", String(!!S.editing));
+    if(step!=="editor"){ $("meEyebrow").textContent="Sua lista"; $("meTitle").textContent="Monte a sua lista de presentes"; }
   }
+
+  function firstName(n){ return String(n||"").trim().split(/\s+/)[0] || ""; }
+  function renderGreeting(){
+    const fn = S.me ? firstName(S.me.name) : "";
+    $("meEyebrow").textContent = "Bem-vindo(a)";
+    $("meTitle").textContent = fn ? `Olá, ${fn}!` : "Olá! Vamos montar a sua lista?";
+    $("welcomeSub").textContent = S.me
+      ? "Veja as listas dos participantes ou edite a sua lista de desejos."
+      : "Preencha seu nome e as sugestões de presente que você gostaria de ganhar.";
+  }
+
+  $("goListsBtn").onclick=()=>{ $("allTitle").scrollIntoView({behavior:"smooth", block:"start"}); $("search").focus({preventScroll:true}); };
+  $("toggleEditBtn").onclick=()=>{
+    if(S.editing && S.dirty){ status("saveStatus","Salve ou desfaça as alterações antes de fechar.","warn"); return; }
+    S.editing=!S.editing; status("welcomeStatus",""); show("editor");
+    if(S.editing) $("editor").scrollIntoView({behavior:"smooth", block:"start"});
+  };
 
   $("stepEmail").addEventListener("submit", async e=>{
     e.preventDefault(); if(S.busy) return;
@@ -408,7 +443,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyrHDc8ZFofkC_3z4vws6zH
   $("changeEmailBtn").onclick=()=>{ show("email"); $("email").focus(); };
 
   $("logoutBtn").onclick=async()=>{
-    const t=S.token; S.token=null; S.me=null; store.del("as_token");
+    const t=S.token; S.token=null; S.me=null; S.editing=false; S.dirty=false; store.del("as_token");
     show("email"); status("emailStatus","Você saiu. Para editar de novo, peça um novo código."); renderPeople();
     try{ await apiPost("logout",{token:t}); }catch(e){}
   };
@@ -421,14 +456,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyrHDc8ZFofkC_3z4vws6zH
 
   /* ---------- editor ---------- */
   function enterEditor(me, email){
-    S.me=me; S.email=email||S.email; $("whoEmail").textContent=S.email;
+    S.me=me; S.email=email||S.email;
     S.draft = me ? JSON.parse(JSON.stringify(me)) : {name:"", shirt:"", shoe:"", avoid:"", items:[]};
     if(!S.draft.items || !S.draft.items.length) S.draft.items=[blankItem()];
     S.draft.items.forEach(it=>{ if(!it.id) it.id=newId(); });
     S.dirty=false;
-    $("meTitle").textContent = me ? `Oi, ${(me.name||"").split(" ")[0]}! Sua lista está salva.` : "Monte a sua lista de presentes";
-    renderEditor(); show("editor"); renderPeople();
-    status("saveStatus", me ? "Altere o que quiser e salve de novo." : "");
+    S.editing = !me;            // sem lista: abre o editor direto; com lista: começa fechado
+    renderGreeting(); renderEditor(); show("editor"); renderPeople();
+    status("saveStatus", ""); status("welcomeStatus", "");
   }
 
   function field(label,cls,control){ const l=el("label",cls,label); l.append(control); return l; }
@@ -484,7 +519,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyrHDc8ZFofkC_3z4vws6zH
       S.people=r.people||S.people; enterEditor(r.me, S.email);
       if(r.me) S.open.add(r.me.id);
       renderPeople();
-      status("saveStatus", badLink ? "Lista salva. Um link não parecia válido e ficou de fora." : "Lista salva! Você pode voltar e alterar quando quiser.", badLink?"warn":"ok");
+      status("welcomeStatus", badLink ? "Lista salva. Um link não parecia válido e ficou de fora." : "Lista salva! Para mudar algo, é só clicar em Editar minha lista.", badLink?"warn":"ok");
     }catch(err){
       if(err.message==="SESSAO_EXPIRADA"){ sessionExpired(); }
       else status("saveStatus", netMsg(err), "err");
