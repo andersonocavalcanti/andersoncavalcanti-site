@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amigo Secreto</title>
+<meta name="description" content="Crie seu amigo secreto, monte listas de desejos e faça o sorteio com envio por e-mail.">
+<meta property="og:title" content="Amigo Secreto">
+<meta property="og:description" content="Crie o grupo, cada um monta sua lista de desejos e o sorteio chega por e-mail.">
+<meta property="og:type" content="website">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='24' width='48' height='32' rx='4' fill='%231E4C38'/%3E%3Crect x='4' y='16' width='56' height='12' rx='3' fill='%23B8304A'/%3E%3Crect x='28' y='16' width='8' height='40' fill='%23F2F5F1'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: cabeçalho do grupo, cartão "você" (login → entrar → saudação → editor), revelação, painel do organizador e a lista de nomes. */
+:root{
+  --bg:#F2F5F1; --surface:#FFFFFF; --sunk:#E6ECE5; --line:#CBD6CC;
+  --ink:#16261E; --muted:#56685D;
+  --pine:#1E4C38; --pine-ink:#F2F5F1;
+  --berry:#B8304A; --berry-soft:#F6DDE2;
+  --gold:#A87A1C;
+  --ok:#2E7D4F; --warn:#9A5B00; --err:#B3261E;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#101814; --surface:#17221C; --sunk:#1E2B24; --line:#2E3F35;
+  --ink:#E7EEE8; --muted:#9DB0A3;
+  --pine:#7CC39C; --pine-ink:#0E1A13;
+  --berry:#F0778D; --berry-soft:#3A1E25;
+  --gold:#E0B456;
+  --ok:#6FCB93; --warn:#E5A84A; --err:#F28B82;
+  color-scheme:dark;
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 64px;display:grid;gap:26px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2.1rem,6vw,3.3rem);font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}
+h1 span{color:var(--berry)}
+h2{font-size:1.4rem;font-weight:700}
+h3{font-size:1.06rem;font-weight:700}
+p{margin:0}
+a{color:var(--pine)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--berry);outline-offset:2px}
+.eyebrow{font-size:.74rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.lede{color:var(--muted);max-width:62ch}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;text-decoration:none;color:var(--ink);display:inline-flex;gap:8px;align-items:center}
+.brand i{width:12px;height:12px;border-radius:3px;background:var(--berry);display:inline-block}
+
+header{display:grid;gap:12px}
+.strip{display:flex;flex-wrap:wrap;gap:10px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;display:flex;gap:8px;align-items:baseline}
+.fact .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.fact b{font-weight:600}
+.fact.empty b{color:var(--muted);font-weight:500}
+.chip-status{border-radius:999px;padding:6px 14px;font-weight:600;font-size:.85rem}
+.chip-status.open{background:var(--sunk);color:var(--muted)}
+.chip-status.drawn{background:var(--berry-soft);color:var(--berry)}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600;display:inline-flex;gap:6px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--pine)}
+.btn.primary{background:var(--pine);color:var(--pine-ink);border-color:var(--pine)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.accent{background:var(--berry);color:#fff;border-color:var(--berry)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 10px}
+.btn.ghost:hover{color:var(--ink)}
+.btn.danger{color:var(--err)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+label{display:grid;gap:4px;font-size:.84rem;color:var(--muted);font-weight:500;min-width:0}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0;color:var(--ink)}
+input:focus,select:focus{border-color:var(--pine);outline:none;box-shadow:0 0 0 3px color-mix(in srgb, var(--pine) 18%, transparent)}
+.status{font-size:.88rem;color:var(--muted);min-height:1.3em}
+.status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.warn{color:var(--warn)}
+.inline{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inline input{flex:1 1 220px}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:16px}
+.panel-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-end}
+.login{display:grid;gap:12px;max-width:440px}
+.code-input{font-family:var(--mono);letter-spacing:.4em;font-size:1.2rem;text-align:center;max-width:220px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.items{display:grid;gap:10px}
+.item-row{display:grid;grid-template-columns:28px 2fr 2fr 1fr 1fr auto;gap:8px;align-items:end;padding:12px;border-radius:10px;background:var(--sunk)}
+.item-row .note{grid-column:2/-1}
+.item-row .num{font-family:var(--mono);color:var(--muted);font-size:.85rem;align-self:center}
+.foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.9rem;background:var(--sunk);border-radius:10px;padding:10px 12px}
+
+/* Compartilhar */
+.share{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--sunk);border-radius:12px;padding:12px 14px}
+.share code{font-family:var(--mono);font-size:.82rem;overflow-wrap:anywhere;min-width:0}
+
+/* Revelação */
+.reveal{border-color:var(--berry);text-align:center;justify-items:center}
+.gift{width:84px;height:84px;position:relative}
+.gift .box{position:absolute;inset:30px 8px 0;background:var(--pine);border-radius:6px}
+.gift .lid{position:absolute;left:2px;right:2px;top:18px;height:16px;background:var(--berry);border-radius:4px;transition:transform .5s}
+.gift .rib{position:absolute;left:38px;width:8px;top:18px;bottom:0;background:var(--pine-ink);opacity:.9}
+.gift.shake{animation:shake .5s ease-in-out 2}
+.gift.open .lid{transform:translateY(-26px) rotate(-14deg)}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.reveal-name{font-family:var(--display);font-size:clamp(2rem,6vw,3rem);font-weight:800;color:var(--berry);overflow-wrap:anywhere}
+.reveal-list{text-align:left;width:100%;max-width:560px}
+
+/* Lista de participantes */
+.list-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.list-head input{max-width:260px}
+.people{display:grid;gap:10px}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.person.mine{border-color:var(--pine)}
+.person-btn{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:14px 18px}
+.person-btn:focus-visible{outline:2px solid var(--berry);outline-offset:-2px}
+.person-btn:hover{background:var(--sunk)}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--berry-soft);color:var(--berry);font-family:var(--display);font-weight:800}
+.person.mine .avatar{background:var(--pine);color:var(--pine-ink)}
+.pname{display:grid;min-width:0}
+.pname b{font-family:var(--display);font-size:1.06rem;overflow-wrap:anywhere}
+.pname small{color:var(--muted);font-size:.8rem}
+.count{font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+.chev{width:18px;height:18px;transition:transform .2s;color:var(--muted)}
+.person-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.details{padding:4px 18px 18px 70px;display:grid;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border-radius:999px;padding:2px 10px;background:var(--sunk);color:var(--muted)}
+.gifts{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.gift-item{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding-top:10px;border-top:1px dashed var(--line)}
+.gift-item:first-child{border-top:0;padding-top:0}
+.prio{width:9px;height:9px;border-radius:50%;margin-top:7px;display:inline-block}
+.legend .prio{margin:0}
+.prio.alta{background:var(--berry)} .prio.media{background:var(--gold)} .prio.baixa{background:var(--line)}
+.gift-body{min-width:0;display:grid;gap:2px}
+.gift-title{font-weight:600;overflow-wrap:anywhere}
+.gift-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.84rem;color:var(--muted)}
+.gift-meta .price{font-family:var(--mono);font-size:.8rem;color:var(--ink)}
+.gift-note{font-size:.86rem;color:var(--muted);overflow-wrap:anywhere}
+.avoid{font-size:.86rem;color:var(--muted);border-left:3px solid var(--berry);padding-left:8px}
+.empty-state{border:1.5px dashed var(--line);border-radius:14px;padding:28px;text-align:center;color:var(--muted);display:grid;gap:6px;justify-items:center}
+
+/* Painel do organizador */
+.admin{border-style:dashed}
+.member-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.member-row:first-child{border-top:0}
+.member-row span{overflow-wrap:anywhere;min-width:0}
+
+/* Criar grupo */
+.hero{display:grid;gap:12px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:s}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:4px}
+.step b{font-family:var(--display)}
+.step small{color:var(--muted)}
+.mygroups a{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.mygroups a:first-child{border-top:0}
+.mygroups small{color:var(--muted)}
+footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px}
+
+@media (max-width:760px){
+  .grid-3,.grid-2{grid-template-columns:1fr 1fr}
+  .grid-3 .name{grid-column:1/-1}
+  .item-row{grid-template-columns:1fr 1fr}
+  .item-row .num,.item-row .t,.item-row .l,.item-row .note{grid-column:1/-1}
+  .item-row .rm{grid-column:1/-1;justify-self:end}
+  .details{padding-left:18px}
+  .person-btn{grid-template-columns:auto 1fr auto;padding:12px 14px}
+  .count{grid-column:2;grid-row:2;margin-top:-10px}
+  .chev{grid-column:3;grid-row:1}
+  .steps{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){.chev,.gift .lid{transition:none}.gift.shake{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a class="brand" href="/amigo-secreto/novo"><i aria-hidden="true"></i>Amigo Secreto</a>
+    <button class="btn ghost" type="button" id="logoutBtn" hidden>Sair</button>
+  </div>
+
+  <p class="notice status warn" id="setupNotice" hidden>Falta configurar o Supabase neste arquivo (SUPABASE_URL e SUPABASE_ANON_KEY).</p>
+
+  <!-- ===================== Login (reaproveitado nas duas telas) ===================== -->
+  <template id="tplLogin">
+    <div class="login" data-login>
+      <form data-step="email" class="login">
+        <label>Seu e-mail<input name="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com"></label>
+        <div class="inline"><button class="btn primary" type="submit">Receber código</button></div>
+        <p class="status" data-status></p>
+      </form>
+      <form data-step="code" class="login" hidden>
+        <p>Enviamos um código de 6 dígitos para <b data-email></b>. Confira também a caixa de spam.</p>
+        <label>Código<input name="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000"></label>
+        <div class="inline">
+          <button class="btn primary" type="submit">Entrar</button>
+          <button class="btn ghost" type="button" data-back>Usar outro e-mail</button>
+        </div>
+        <p class="status" data-status></p>
+      </form>
+    </div>
+  </template>
+
+  <!-- ===================== Tela: criar grupo ===================== -->
+  <main id="viewNew" hidden>
+    <div style="display:grid;gap:26px">
+      <section class="hero">
+        <p class="eyebrow">Grátis · sem senha · sorteio por e-mail</p>
+        <h1>Crie o seu <span>amigo secreto</span></h1>
+        <p class="lede">Monte o grupo, mande o link no WhatsApp e cada pessoa cadastra a lista de desejos dela. Na hora do sorteio, cada um descobre quem tirou na tela e recebe por e-mail.</p>
+        <div class="steps">
+          <div class="step"><b>1. Crie o grupo</b><small>Nome, data, valor e quantidade de pessoas.</small></div>
+          <div class="step"><b>2. Compartilhe o link</b><small>Cada um entra com o e-mail e monta a lista.</small></div>
+          <div class="step"><b>3. Sorteie</b><small>Ninguém tira a si mesmo, nem o organizador vê o resultado.</small></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="newTitle">
+        <div class="panel-head"><div><p class="eyebrow">Novo grupo</p><h2 id="newTitle">Entre para criar o seu grupo</h2></div></div>
+        <div id="newLoginSlot"></div>
+        <form id="createForm" hidden>
+          <div style="display:grid;gap:14px">
+            <div class="grid-2">
+              <label class="full">Nome do grupo<input id="cName" maxlength="80" required placeholder="ex.: Amigo Secreto da Família 2026"></label>
+              <label>Data da troca<input id="cDate" type="date"></label>
+              <label>Valor sugerido<input id="cBudget" maxlength="40" placeholder="ex.: R$ 100 a R$ 150"></label>
+              <label>Local<input id="cPlace" maxlength="80" placeholder="ex.: casa da vó"></label>
+              <label>Máximo de participantes<input id="cMax" type="number" min="3" max="100" value="20" required></label>
+              <label class="full">Seu nome (você também participa)<input id="cMe" maxlength="60" required placeholder="ex.: Anderson"></label>
+            </div>
+            <div class="inline"><button class="btn primary" type="submit" id="createBtn">Criar grupo</button></div>
+            <p class="status" id="createStatus"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel mygroups" id="myGroupsPanel" hidden aria-labelledby="mgTitle">
+        <h2 id="mgTitle">Seus grupos</h2>
+        <div id="myGroups"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== Tela: grupo ===================== -->
+  <main id="viewGroup" hidden>
+    <div style="display:grid;gap:26px">
+      <header>
+        <p class="eyebrow" id="gEyebrow">Amigo secreto</p>
+        <h1 id="gName">Carregando…</h1>
+        <div class="strip" id="gStrip"></div>
+      </header>
+
+      <!-- Compartilhar (participantes) -->
+      <div class="share" id="shareBox" hidden>
+        <div style="display:grid;gap:2px;min-width:0"><b>Convide pelo link</b><code id="shareLink"></code></div>
+        <div class="inline">
+          <button class="btn" type="button" id="copyBtn">Copiar link</button>
+          <a class="btn primary" id="waBtn" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+        </div>
+      </div>
+
+      <!-- Você -->
+      <section class="panel" aria-labelledby="meTitle">
+        <div class="panel-head"><div><p class="eyebrow" id="meEyebrow">Sua lista</p><h2 id="meTitle">Entre para participar</h2></div></div>
+        <p class="status" id="meIntro"></p>
+        <div id="groupLoginSlot"></div>
+
+        <form id="joinForm" class="login" hidden>
+          <label>Seu nome (como o grupo te conhece)<input id="jName" maxlength="60" required placeholder="ex.: Ana Paula"></label>
+          <div class="inline"><button class="btn primary" type="submit" id="joinBtn">Entrar no grupo</button></div>
+          <p class="status" id="joinStatus"></p>
+        </form>
+
+        <div id="welcome" hidden style="display:grid;gap:14px">
+          <p class="lede" id="welcomeSub"></p>
+          <div class="inline">
+            <button class="btn accent" type="button" id="revealBtn" hidden>Revelar meu amigo secreto</button>
+            <button class="btn primary" type="button" id="goListsBtn">Ver listas</button>
+            <button class="btn" type="button" id="shareMineBtn">Compartilhar minha lista</button>
+            <button class="btn" type="button" id="toggleEditBtn" aria-controls="editor" aria-expanded="false">Editar minha lista</button>
+          </div>
+          <p class="status" id="welcomeStatus"></p>
+        </div>
+
+        <form id="editor" hidden>
+          <div style="display:grid;gap:18px">
+            <div class="legend" aria-label="Legenda de prioridade">
+              <span><i class="prio alta"></i>Quero muito</span><span><i class="prio media"></i>Gostaria</span><span><i class="prio baixa"></i>Se der</span>
+            </div>
+            <div class="grid-3">
+              <label class="name">Seu nome<input id="fName" maxlength="60" required></label>
+              <label>Camiseta<input id="fShirt" maxlength="10" placeholder="P, M, G…"></label>
+              <label>Calçado<input id="fShoe" maxlength="10" placeholder="ex.: 39"></label>
+              <label class="full">Prefiro não ganhar (opcional)<input id="fAvoid" maxlength="200" placeholder="ex.: perfume, canecas"></label>
+            </div>
+            <div class="items" id="items"></div>
+            <div><button class="btn" type="button" id="addItem">+ Adicionar sugestão</button></div>
+            <div class="foot">
+              <p class="status" id="saveStatus"></p>
+              <div class="inline">
+                <button class="btn ghost danger" type="button" id="leaveBtn" hidden>Sair do grupo</button>
+                <button class="btn primary" type="submit" id="saveBtn">Salvar minha lista</button>
+              </div>
+            </div>
+            <div class="confirm" id="leaveConfirm" hidden>Sair do grupo e apagar sua lista?
+              <button class="btn danger" type="button" id="leaveYes">Sair</button>
+              <button class="btn ghost" type="button" id="leaveNo">Cancelar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Revelação -->
+      <section class="panel reveal" id="revealPanel" hidden aria-live="polite">
+        <div class="gift" id="giftAnim" aria-hidden="true"><div class="box"></div><div class="lid"></div><div class="rib"></div></div>
+        <p class="eyebrow">Seu amigo secreto é</p>
+        <p class="reveal-name" id="revealName"></p>
+        <p class="status">Também enviamos por e-mail. Guarde segredo!</p>
+        <div class="reveal-list" id="revealList"></div>
+      </section>
+
+      <!-- Painel do organizador -->
+      <section class="panel admin" id="adminPanel" hidden aria-labelledby="admTitle">
+        <div class="panel-head"><div><p class="eyebrow">Só administradores veem</p><h2 id="admTitle">Painel do organizador</h2></div></div>
+
+        <div style="display:grid;gap:10px">
+          <h3>Sorteio</h3>
+          <p class="lede" id="drawInfo"></p>
+          <div class="inline" id="drawActions"></div>
+          <div class="confirm" id="drawConfirm" hidden>
+            <span id="drawConfirmText"></span>
+            <button class="btn accent" type="button" id="drawYes">Confirmar</button>
+            <button class="btn ghost" type="button" id="drawNo">Cancelar</button>
+          </div>
+          <p class="status" id="drawStatus"></p>
+        </div>
+
+        <div style="display:grid;gap:8px">
+          <h3>Participantes (<span id="admCount">0</span>)</h3>
+          <p class="status" id="admHint"></p>
+          <div id="admMembers"></div>
+        </div>
+
+        <details>
+          <summary style="cursor:pointer;font-weight:600">Editar dados do grupo</summary>
+          <form id="groupForm" style="display:grid;gap:12px;margin-top:12px">
+            <div class="grid-2">
+              <label class="full">Nome do grupo<input id="eName" maxlength="80" required></label>
+              <label>Data da troca<input id="eDate" type="date"></label>
+              <label>Valor sugerido<input id="eBudget" maxlength="40"></label>
+              <label>Local<input id="ePlace" maxlength="80"></label>
+              <label>Máximo de participantes<input id="eMax" type="number" min="3" max="100" required></label>
+            </div>
+            <div class="inline"><button class="btn primary" type="submit">Salvar dados</button></div>
+            <p class="status" id="groupStatus"></p>
+          </form>
+        </details>
+      </section>
+
+      <!-- Listas -->
+      <section style="display:grid;gap:16px" aria-labelledby="allTitle">
+        <div class="list-head">
+          <div><p class="eyebrow" id="count">Participantes</p><h2 id="allTitle">Confira a lista dos seus amigos</h2></div>
+          <input id="search" type="search" placeholder="Buscar pelo nome" aria-label="Buscar participante">
+        </div>
+        <div class="people" id="people"></div>
+        <div class="empty-state" id="emptyAll" hidden><h3>Ninguém por aqui ainda</h3><p>Os nomes aparecem assim que as pessoas entrarem pelo link.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== Grupo não encontrado ===================== -->
+  <main id="viewNotFound" hidden>
+    <div class="empty-state">
+      <h2>Grupo não encontrado</h2>
+      <p>Confira o link com quem te convidou, ou crie o seu próprio grupo.</p>
+      <a class="btn primary" href="/amigo-secreto/novo">Criar um amigo secreto</a>
+    </div>
+  </main>
+
+  <footer>
+    <span>Os e-mails dos participantes não aparecem para ninguém.</span>
+    <a href="/amigo-secreto/novo">Crie o seu amigo secreto</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ===================== CONFIGURAÇÃO (chaves públicas) ===================== */
+const SUPABASE_URL = "https://oomobedqvbuayjdjmdaz.supabase.co";        // ex.: https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vbW9iZWRxdmJ1YXlqZGptZGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3Nzg4MjcsImV4cCI6MjEwODM1NDgyN30.23RGkCMnm6u7NOjJDxeXlnGArS7cXotRJiVhLdwCZEc"; // chave "anon public" (pode ficar no site)
+/* ========================================================================= */
+
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const MAX_ITEMS = 15;
+  const PRIO = {alta:"Quero muito", media:"Gostaria", baixa:"Se der"};
+  const PRIO_ORDER = ["alta","media","baixa"];
+  const ERR = {
+    LOGIN_NECESSARIO:"Entre com seu e-mail para continuar.",
+    GRUPO_NAO_ENCONTRADO:"Grupo não encontrado.",
+    GRUPO_CHEIO:"Este grupo já atingiu o número máximo de participantes.",
+    SORTEIO_JA_FEITO:"O sorteio já foi feito. Peça ao organizador para reabrir o grupo.",
+    NOME_INVALIDO:"Coloque seu nome.",
+    NOME_GRUPO_INVALIDO:"Dê um nome ao grupo (mínimo 2 letras).",
+    LISTA_VAZIA:"Adicione pelo menos uma sugestão de presente.",
+    NAO_PARTICIPANTE:"Você não participa deste grupo.",
+    SOMENTE_ORGANIZADOR:"Só administradores do grupo podem fazer isso.",
+    SOMENTE_CRIADOR:"Só quem criou o grupo pode nomear administradores.",
+    ORGANIZADOR_NAO_SAI:"O organizador não pode sair do grupo.",
+    LIMITE_GRUPOS_DIA:"Você criou muitos grupos hoje. Tente amanhã.",
+    LIMITE_MENOR_QUE_PARTICIPANTES:"O limite não pode ser menor que o número de participantes."
+  };
+  const S = {sb:null, session:null, route:null, groupId:null, data:null, draft:null, dirty:false, editing:false, busy:false, open:new Set(), confirmAction:null};
+
+  /* ---------- utilidades ---------- */
+  const el=(t,c,x)=>{const n=document.createElement(t); if(c) n.className=c; if(x!=null) n.textContent=x; return n;};
+  const status=(id,m,k)=>{const n=typeof id==="string"?$(id):id; n.textContent=m||""; n.className="status"+(k?" "+k:"");};
+  const newId=()=>Math.random().toString(36).slice(2,10);
+  const blankItem=()=>({id:newId(),title:"",link:"",price:"",priority:"media",note:""});
+  const safeUrl=u=>{try{const x=new URL(String(u||"").trim()); return /^https?:$/.test(x.protocol)?x.href:null;}catch(e){return null;}};
+  const fmtDate=d=>{if(!d) return ""; const p=String(d).split("-"); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;};
+  const fmtWhen=iso=>{if(!iso) return ""; const t=new Date(iso); return isNaN(t)?"":"atualizada em "+t.toLocaleDateString("pt-BR");};
+  const initials=n=>(String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("")||"?").toUpperCase();
+  const firstName=n=>String(n||"").trim().split(/\s+/)[0]||"";
+  const errMsg=e=>{const m=String((e&&e.message)||e||""); const k=Object.keys(ERR).find(k=>m.includes(k)); return k?ERR[k]:(/fetch|network/i.test(m)?"Sem conexão. Tente de novo.":"Algo deu errado. Tente de novo.");};
+  const groupLink=id=>`${location.origin}/amigo-secreto/g/${id}`;
+
+  async function rpc(fn,args){ const {data,error}=await S.sb.rpc(fn,args||{}); if(error) throw new Error(error.message); return data; }
+
+  /* ---------- login por código (componente) ---------- */
+  function mountLogin(slot, onDone){
+    slot.replaceChildren($("tplLogin").content.cloneNode(true));
+    const root=slot.querySelector("[data-login]");
+    const fEmail=root.querySelector('[data-step="email"]'), fCode=root.querySelector('[data-step="code"]');
+    let email="";
+    try{ fEmail.email.value=localStorage.getItem("as2_email")||""; }catch(e){}
+    fEmail.addEventListener("submit", async e=>{
+      e.preventDefault(); if(S.busy) return;
+      email=fEmail.email.value.trim().toLowerCase();
+      const st=fEmail.querySelector("[data-status]");
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ status(st,"Digite um e-mail válido.","err"); return; }
+      S.busy=true; status(st,"Enviando código…");
+      const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true}});
+      S.busy=false;
+      if(error){ status(st, /rate|seconds/i.test(error.message)?"Aguarde um minuto antes de pedir outro código.":"Não foi possível enviar o código. Tente de novo.","err"); return; }
+      try{ localStorage.setItem("as2_email",email); }catch(e){}
+      root.querySelector("[data-email]").textContent=email;
+      fEmail.hidden=true; fCode.hidden=false; fCode.code.value=""; fCode.code.focus();
+    });
+    fCode.code.addEventListener("input",()=>{ fCode.code.value=fCode.code.value.replace(/\D/g,"").slice(0,6); if(fCode.code.value.length===6) fCode.requestSubmit(); });
+    fCode.addEventListener("submit", async e=>{
+      e.preventDefault(); if(S.busy) return;
+      const st=fCode.querySelector("[data-status]");
+      S.busy=true; status(st,"Conferindo…");
+      const {error}=await S.sb.auth.verifyOtp({email, token:fCode.code.value, type:"email"});
+      S.busy=false;
+      if(error){ status(st,"Código incorreto ou expirado. Confira o e-mail ou peça outro.","err"); fCode.code.select(); return; }
+      onDone && onDone();
+    });
+    root.querySelector("[data-back]").onclick=()=>{ fCode.hidden=true; fEmail.hidden=false; fEmail.email.focus(); };
+  }
+
+  /* ---------- roteamento ---------- */
+  function parseRoute(){
+    const m=location.pathname.match(/\/amigo-secreto\/g\/([a-z0-9]{6,12})\/?$/i);
+    if(m) return {name:"group", id:m[1].toLowerCase()};
+    return {name:"new"};
+  }
+  function showView(v){ ["viewNew","viewGroup","viewNotFound"].forEach(x=>$(x).hidden=(x!==v)); }
+
+  /* ================= TELA: CRIAR GRUPO ================= */
+  async function renderNew(){
+    showView("viewNew"); document.title="Criar amigo secreto";
+    const logged=!!S.session;
+    $("newTitle").textContent = logged ? "Dados do grupo" : "Entre para criar o seu grupo";
+    $("createForm").hidden=!logged;
+    if(!logged){ mountLogin($("newLoginSlot"), ()=>{}); $("myGroupsPanel").hidden=true; return; }
+    $("newLoginSlot").replaceChildren();
+    try{
+      const groups=await rpc("my_groups");
+      $("myGroupsPanel").hidden=!groups.length;
+      const box=$("myGroups"); box.replaceChildren();
+      groups.forEach(g=>{
+        const a=el("a"); a.href=`/amigo-secreto/g/${g.id}`;
+        const l=el("span"); l.append(el("b",null,g.name)); l.append(el("small",null,`  ${g.member_count} participante(s)${g.is_owner?" · criador":(g.is_admin?" · administrador":"")}`));
+        a.append(l, el("small",null,g.status==="drawn"?"Sorteado":"Aberto"));
+        box.append(a);
+      });
+    }catch(e){ $("myGroupsPanel").hidden=true; }
+  }
+  $("createForm").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    const max=parseInt($("cMax").value,10);
+    if(!(max>=3 && max<=100)){ status("createStatus","O máximo de participantes vai de 3 a 100.","err"); return; }
+    S.busy=true; $("createBtn").disabled=true; status("createStatus","Criando…");
+    try{
+      const id=await rpc("create_group",{p_name:$("cName").value, p_event_date:$("cDate").value||null, p_budget:$("cBudget").value, p_place:$("cPlace").value, p_max:max, p_display_name:$("cMe").value});
+      history.pushState({}, "", `/amigo-secreto/g/${id}`); S.editing=true; await route();
+      status("welcomeStatus","Grupo criado! Agora monte sua lista e mande o link para o grupo.","ok");
+    }catch(err){ status("createStatus", errMsg(err), "err"); }
+    finally{ S.busy=false; $("createBtn").disabled=false; }
+  });
+
+  /* ================= TELA: GRUPO ================= */
+  async function loadGroup(){
+    const data=await rpc("get_group",{p_id:S.groupId});
+    S.data=data; return data;
+  }
+
+  async function renderGroup(){
+    showView("viewGroup");
+    let data;
+    try{ data=await loadGroup(); }catch(e){ $("gName").textContent="Não foi possível carregar"; return; }
+    if(!data){ showView("viewNotFound"); return; }
+    const g=data.group, me=data.me;
+    document.title=g.name;
+    $("gName").textContent=g.name;
+    $("gEyebrow").textContent = g.status==="drawn" ? "Sorteio realizado" : "Amigo secreto";
+    // faixa
+    const s=$("gStrip"); s.replaceChildren();
+    [["Troca",fmtDate(g.event_date)],["Valor sugerido",g.budget],["Local",g.place],["Participantes",`${g.member_count} de ${g.max_participants}`]].forEach(([k,v])=>{
+      const f=el("div","fact"+(v?"":" empty")); f.append(el("span","k",k), el("b",null,v||"a definir")); s.append(f);
+    });
+    const chip=el("span","chip-status "+g.status, g.status==="drawn"?"Sorteado":"Aberto para entrar"); s.append(chip);
+
+    // compartilhar
+    $("shareBox").hidden=!me;
+    $("shareLink").textContent=groupLink(g.id);
+    $("waBtn").href="https://wa.me/?text="+encodeURIComponent(`Entra no nosso amigo secreto "${g.name}" e coloca sua lista de desejos: ${groupLink(g.id)}`);
+
+    renderMe(); renderAdmin(); renderPeople();
+  }
+
+  function renderMe(){
+    const d=S.data, g=d.group, me=d.me, logged=!!S.session;
+    const loginSlot=$("groupLoginSlot");
+    $("joinForm").hidden=true; $("welcome").hidden=true; $("editor").hidden=true; status("meIntro","");
+    if(!logged){
+      $("meEyebrow").textContent="Participe"; $("meTitle").textContent="Entre para montar a sua lista";
+      status("meIntro", g.status==="drawn" ? "O sorteio já foi feito. Entre para ver quem você tirou." : "Você recebe um código no e-mail. Sem senha.");
+      mountLogin(loginSlot, ()=>{}); return;
+    }
+    loginSlot.replaceChildren();
+    if(!me){
+      $("meEyebrow").textContent="Participe";
+      if(g.status!=="open"){ $("meTitle").textContent="O sorteio já foi feito"; status("meIntro","Peça ao organizador para reabrir o grupo se você ainda quiser entrar."); return; }
+      if(g.member_count>=g.max_participants){ $("meTitle").textContent="Grupo cheio"; status("meIntro","Este grupo já atingiu o número máximo de participantes."); return; }
+      $("meTitle").textContent="Entrar no grupo"; $("joinForm").hidden=false; return;
+    }
+    // participante
+    const fn=firstName(me.name);
+    const hasList=(me.items||[]).length>0;
+    $("meEyebrow").textContent = d.is_owner ? "Criador do grupo" : (d.is_admin ? "Administrador" : "Bem-vindo(a)");
+    $("meTitle").textContent = `Olá, ${fn}!`;
+    $("welcomeSub").textContent = g.status==="drawn"
+      ? "O sorteio já foi feito. Revele quem você tirou e confira a lista de desejos."
+      : (hasList ? "Veja as listas dos seus amigos ou edite a sua lista de desejos." : "Monte a sua lista de desejos para quem te tirar saber o que dar.");
+    $("welcome").hidden=false;
+    $("revealBtn").hidden = g.status!=="drawn";
+    $("shareMineBtn").hidden = !hasList;
+    if(!hasList && S.editing===false && !S.touchedEdit) S.editing=true;
+    if(!S.draft || !S.dirty){
+      S.draft={name:me.name, shirt:me.shirt||"", shoe:me.shoe||"", avoid:me.avoid||"", items:(me.items&&me.items.length)?JSON.parse(JSON.stringify(me.items)):[blankItem()]};
+      renderEditor();
+    }
+    $("leaveBtn").hidden = d.is_owner || g.status!=="open";
+    applyEditing();
+  }
+
+  function applyEditing(){
+    $("editor").hidden=!S.editing;
+    $("toggleEditBtn").textContent=S.editing?"Fechar edição":"Editar minha lista";
+    $("toggleEditBtn").setAttribute("aria-expanded",String(S.editing));
+  }
+  $("toggleEditBtn").onclick=()=>{
+    if(S.editing && S.dirty){ status("saveStatus","Salve ou desfaça as alterações antes de fechar.","warn"); return; }
+    S.touchedEdit=true; S.editing=!S.editing; applyEditing();
+    if(S.editing) $("editor").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  $("goListsBtn").onclick=()=>$("allTitle").scrollIntoView({behavior:"smooth",block:"start"});
+
+  /* ---------- compartilhar a lista de uma pessoa (link direto, já aberto) ---------- */
+  const personLink=id=>`${groupLink(S.groupId)}#p-${id}`;
+  async function shareLink(url, title, text, statusEl){
+    // celular: abre o menu nativo (WhatsApp, Telegram…); computador: copia o link
+    if(navigator.share){
+      try{ await navigator.share({title, text, url}); return; }
+      catch(e){ if(e && e.name==="AbortError") return; }
+    }
+    try{ await navigator.clipboard.writeText(url); status(statusEl,"Link copiado! Cole no WhatsApp ou onde quiser.","ok"); }
+    catch(e){ status(statusEl,"Copie este link: "+url,"warn"); }
+  }
+  $("shareMineBtn").onclick=()=>{
+    const me=S.data && S.data.me; if(!me) return;
+    shareLink(personLink(me.member_id), `Lista de desejos de ${me.name}`, `Minha lista de desejos no amigo secreto "${S.data.group.name}":`, "welcomeStatus");
+  };
+
+  $("joinForm").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    S.busy=true; $("joinBtn").disabled=true; status("joinStatus","Entrando…");
+    try{ await rpc("join_group",{p_id:S.groupId, p_display_name:$("jName").value}); S.editing=true; await renderGroup();
+         status("welcomeStatus","Você entrou no grupo! Agora monte sua lista.","ok"); }
+    catch(err){ status("joinStatus", errMsg(err), "err"); }
+    finally{ S.busy=false; $("joinBtn").disabled=false; }
+  });
+
+  /* ---------- editor da lista ---------- */
+  function field(label,cls,control){ const l=el("label",cls,label); l.append(control); return l; }
+  function inp(k,v,ph,max,i,type){ const n=el("input"); n.id=`it-${i}-${k}`; n.dataset.k=k; n.value=v||""; n.placeholder=ph; n.maxLength=max; if(type) n.type=type; return n; }
+  function renderEditor(){
+    const d=S.draft;
+    $("fName").value=d.name||""; $("fShirt").value=d.shirt||""; $("fShoe").value=d.shoe||""; $("fAvoid").value=d.avoid||"";
+    const box=$("items"); box.replaceChildren();
+    d.items.forEach((it,i)=>{
+      const row=el("div","item-row");
+      row.append(el("span","num",String(i+1).padStart(2,"0")));
+      row.append(field("Presente","t",inp("title",it.title,"ex.: Fone bluetooth",80,i)));
+      row.append(field("Link de referência (opcional)","l",inp("link",it.link,"https://…",400,i,"url")));
+      row.append(field("Faixa de preço","p",inp("price",it.price,"ex.: R$ 120",30,i)));
+      const sel=el("select"); sel.id=`it-${i}-priority`; sel.dataset.k="priority";
+      Object.entries(PRIO).forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; if((it.priority||"media")===v) o.selected=true; sel.append(o); });
+      row.append(field("Prioridade","pr",sel));
+      const rm=el("button","btn ghost rm","Remover"); rm.type="button"; rm.dataset.rm=it.id; rm.setAttribute("aria-label",`Remover sugestão ${i+1}`); row.append(rm);
+      row.append(field("Observação (cor, tamanho, modelo…)","note",inp("note",it.note,"opcional",200,i)));
+      box.append(row);
+    });
+    $("addItem").disabled=d.items.length>=MAX_ITEMS;
+  }
+  function readForm(){
+    const d=S.draft;
+    d.name=$("fName").value.trim(); d.shirt=$("fShirt").value.trim(); d.shoe=$("fShoe").value.trim(); d.avoid=$("fAvoid").value.trim();
+    [...$("items").children].forEach((row,i)=>{ const it=d.items[i]; if(!it) return; row.querySelectorAll("[data-k]").forEach(x=>{ it[x.dataset.k]=x.value.trim(); }); });
+  }
+  $("editor").addEventListener("input",()=>{ S.dirty=true; status("saveStatus","Alterações não salvas.","warn"); });
+  $("addItem").onclick=()=>{ readForm(); if(S.draft.items.length<MAX_ITEMS){ S.draft.items.push(blankItem()); S.dirty=true; renderEditor(); const n=$(`it-${S.draft.items.length-1}-title`); n&&n.focus(); } };
+  $("items").addEventListener("click",e=>{
+    const id=e.target.dataset&&e.target.dataset.rm; if(!id) return;
+    readForm(); S.draft.items=S.draft.items.filter(x=>x.id!==id); if(!S.draft.items.length) S.draft.items=[blankItem()];
+    S.dirty=true; renderEditor(); status("saveStatus","Alterações não salvas.","warn");
+  });
+  $("editor").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    readForm(); const d=S.draft;
+    if(!d.name){ status("saveStatus",ERR.NOME_INVALIDO,"err"); $("fName").focus(); return; }
+    const items=d.items.filter(x=>x.title).map(x=>({id:x.id,title:x.title,link:safeUrl(x.link)||"",price:x.price,priority:x.priority,note:x.note}));
+    if(!items.length){ status("saveStatus",ERR.LISTA_VAZIA,"err"); return; }
+    const badLink=d.items.some(x=>x.link && !safeUrl(x.link));
+    S.busy=true; $("saveBtn").disabled=true; status("saveStatus","Salvando…");
+    try{
+      await rpc("save_my_list",{p_id:S.groupId,p_name:d.name,p_shirt:d.shirt,p_shoe:d.shoe,p_avoid:d.avoid,p_items:items});
+      S.dirty=false; S.editing=false; S.touchedEdit=true; S.draft=null;
+      await renderGroup();
+      if(S.data.me) S.open.add(S.data.me.member_id); renderPeople();
+      status("welcomeStatus", badLink?"Lista salva. Um link não parecia válido e ficou de fora.":"Lista salva! Para mudar algo, clique em Editar minha lista.", badLink?"warn":"ok");
+    }catch(err){ status("saveStatus", errMsg(err), "err"); }
+    finally{ S.busy=false; $("saveBtn").disabled=false; }
+  });
+  $("leaveBtn").onclick=()=>{ $("leaveConfirm").hidden=false; };
+  $("leaveNo").onclick=()=>{ $("leaveConfirm").hidden=true; };
+  $("leaveYes").onclick=async()=>{
+    try{ await rpc("leave_group",{p_id:S.groupId}); S.draft=null; S.dirty=false; $("leaveConfirm").hidden=true; await renderGroup(); }
+    catch(err){ status("saveStatus", errMsg(err), "err"); }
+  };
+
+  /* ---------- revelação ---------- */
+  $("revealBtn").onclick=async()=>{
+    if(S.busy) return; S.busy=true;
+    try{
+      const r=await rpc("my_assignment",{p_id:S.groupId});
+      if(!r){ status("welcomeStatus","O sorteio ainda não foi feito.","warn"); return; }
+      const p=$("revealPanel"); p.hidden=false; p.scrollIntoView({behavior:"smooth",block:"center"});
+      const gift=$("giftAnim"); gift.className="gift shake"; $("revealName").textContent=""; $("revealList").replaceChildren();
+      const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setTimeout(()=>{
+        gift.className="gift open";
+        $("revealName").textContent=r.name;
+        $("revealList").append(personDetails({name:r.name, shirt:r.shirt, shoe:r.shoe, avoid:r.avoid, items:r.items}));
+      }, reduce?0:1100);
+    }catch(err){ status("welcomeStatus", errMsg(err), "err"); }
+    finally{ S.busy=false; }
+  };
+
+  /* ---------- painel do organizador ---------- */
+  function renderAdmin(){
+    const d=S.data, g=d.group;
+    $("adminPanel").hidden=!d.is_admin;
+    if(!d.is_admin) return;
+    $("admCount").textContent=g.member_count;
+    // sorteio
+    const acts=$("drawActions"); acts.replaceChildren(); $("drawConfirm").hidden=true;
+    if(g.status==="open"){
+      $("drawInfo").textContent = g.member_count<3
+        ? `Faltam ${3-g.member_count} participante(s) para poder sortear (mínimo 3).`
+        : `${g.member_count} participantes. Depois do sorteio ninguém mais entra, e cada um recebe por e-mail quem tirou.`;
+      const b=el("button","btn accent","Sortear agora"); b.type="button"; b.disabled=g.member_count<3;
+      b.onclick=()=>askConfirm(`Sortear e enviar e-mail para ${g.member_count} pessoas?`, doDraw);
+      acts.append(b);
+    }else{
+      $("drawInfo").textContent=`Sorteio feito em ${new Date(g.drawn_at).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}. Ninguém, nem você, vê os pares.`;
+      const redo=el("button","btn","Refazer sorteio"); redo.type="button";
+      redo.onclick=()=>askConfirm("Refazer o sorteio? O resultado anterior deixa de valer e todos recebem um novo e-mail.", doDraw);
+      const reopen=el("button","btn ghost","Reabrir para novas pessoas"); reopen.type="button";
+      reopen.onclick=()=>askConfirm("Reabrir o grupo? O sorteio atual é desfeito e será preciso sortear de novo.", async()=>{
+        try{ await rpc("reopen_group",{p_id:S.groupId}); status("drawStatus","Grupo reaberto.","ok"); await renderGroup(); }catch(err){ status("drawStatus",errMsg(err),"err"); }
+      });
+      acts.append(redo, reopen);
+    }
+    // participantes
+    const box=$("admMembers"); box.replaceChildren();
+    const myId=d.me && d.me.member_id;
+    $("admHint").textContent = d.is_owner ? "Administradores podem sortear, editar o grupo e gerenciar participantes." : "";
+    d.members.forEach(m=>{
+      const row=el("div","member-row");
+      const label=el("span");
+      label.append(document.createTextNode(m.name+(m.id===myId?" (você)":"")));
+      if(m.is_owner) label.append(" ", el("span","chip","criador"));
+      else if(m.is_admin) label.append(" ", el("span","chip","admin"));
+      if(!(m.items||[]).length) label.append(" ", el("span","chip","sem lista"));
+      row.append(label);
+      const acts=el("div","inline");
+      if(d.is_owner && !m.is_owner){
+        const t=el("button","btn ghost", m.is_admin?"Remover admin":"Tornar admin"); t.type="button";
+        t.onclick=async()=>{ try{ await rpc("set_admin",{p_id:S.groupId,p_member_id:m.id,p_value:!m.is_admin}); await renderGroup(); status("drawStatus", m.is_admin?`${m.name} não é mais administrador.`:`${m.name} agora é administrador.`,"ok"); }catch(err){ status("drawStatus",errMsg(err),"err"); } };
+        acts.append(t);
+      }
+      row.append(acts);
+      if(!m.is_owner && g.status==="open" && m.id!==myId && (!m.is_admin || d.is_owner)){
+        const rm=el("button","btn ghost danger","Remover"); rm.type="button";
+        rm.onclick=()=>askConfirm(`Remover ${m.name} do grupo?`, async()=>{
+          try{ await rpc("remove_member",{p_id:S.groupId,p_member_id:m.id}); await renderGroup(); }catch(err){ status("drawStatus",errMsg(err),"err"); }
+        });
+        acts.append(rm);
+      }
+      box.append(row);
+    });
+    // dados
+    if(!$("groupForm").contains(document.activeElement)){
+      $("eName").value=g.name; $("eDate").value=g.event_date||""; $("eBudget").value=g.budget||""; $("ePlace").value=g.place||""; $("eMax").value=g.max_participants;
+    }
+  }
+  function askConfirm(text, action){
+    S.confirmAction=action; $("drawConfirmText").textContent=text; $("drawConfirm").hidden=false; $("drawYes").focus();
+  }
+  $("drawNo").onclick=()=>{ $("drawConfirm").hidden=true; S.confirmAction=null; };
+  $("drawYes").onclick=async()=>{ const a=S.confirmAction; $("drawConfirm").hidden=true; S.confirmAction=null; if(a) await a(); };
+
+  async function doDraw(){
+    status("drawStatus","Sorteando e enviando e-mails…");
+    try{
+      const {data:{session}}=await S.sb.auth.getSession();
+      const r=await fetch("/api/draw",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(session?session.access_token:"")},body:JSON.stringify({groupId:S.groupId})});
+      const j=await r.json().catch(()=>({ok:false,error:"Resposta inválida do servidor."}));
+      if(!j.ok){ status("drawStatus", j.error||"Não foi possível sortear.","err"); return; }
+      await renderGroup();
+      status("drawStatus", j.emailsFailed ? `Sorteio feito. ${j.emailsSent} e-mail(s) enviados, ${j.emailsFailed} falharam: os participantes ainda podem revelar pela página.` : `Sorteio feito! ${j.emailsSent} e-mails enviados.`, j.emailsFailed?"warn":"ok");
+    }catch(err){ status("drawStatus","Sem conexão. Tente de novo.","err"); }
+  }
+
+  $("groupForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    try{
+      await rpc("update_group",{p_id:S.groupId,p_name:$("eName").value,p_event_date:$("eDate").value||null,p_budget:$("eBudget").value,p_place:$("ePlace").value,p_max:parseInt($("eMax").value,10)});
+      status("groupStatus","Dados salvos.","ok"); await renderGroup();
+    }catch(err){ status("groupStatus", errMsg(err), "err"); }
+  });
+
+  /* ---------- listas ---------- */
+  function sortedItems(items){ return (items||[]).slice().sort((a,b)=>PRIO_ORDER.indexOf(a.priority)-PRIO_ORDER.indexOf(b.priority)); }
+  function personDetails(p){
+    const det=el("div",null); det.style.display="grid"; det.style.gap="12px";
+    const chips=el("div","chips");
+    if(p.shirt) chips.append(el("span","chip","Camiseta "+p.shirt));
+    if(p.shoe) chips.append(el("span","chip","Calçado "+p.shoe));
+    if(chips.children.length) det.append(chips);
+    const items=sortedItems(p.items);
+    if(!items.length) det.append(el("p","status","Ainda não colocou sugestões."));
+    const ul=el("ul","gifts");
+    items.forEach(it=>{
+      const li=el("li","gift-item");
+      const dot=el("i","prio "+(PRIO[it.priority]?it.priority:"media")); dot.title=PRIO[it.priority]||PRIO.media;
+      const body=el("div","gift-body"); body.append(el("span","gift-title",it.title));
+      const meta=el("div","gift-meta");
+      if(it.price) meta.append(el("span","price",it.price));
+      const url=safeUrl(it.link);
+      if(url){ const a=el("a",null,"Ver referência ↗"); a.href=url; a.target="_blank"; a.rel="noopener noreferrer nofollow"; meta.append(a); }
+      if(meta.children.length) body.append(meta);
+      if(it.note) body.append(el("span","gift-note",it.note));
+      li.append(dot,body); ul.append(li);
+    });
+    if(items.length) det.append(ul);
+    if(p.avoid) det.append(el("p","avoid","Prefere não ganhar: "+p.avoid));
+    return det;
+  }
+  function renderPeople(){
+    if(!S.data) return;
+    const q=$("search").value.trim().toLowerCase();
+    const myId=S.data.me && S.data.me.member_id;
+    const all=S.data.members;
+    const list=all.filter(p=>!q||(p.name||"").toLowerCase().includes(q))
+      .sort((a,b)=>a.id===myId?-1:b.id===myId?1:(a.name||"").localeCompare(b.name||"","pt-BR"));
+    $("count").textContent=`${all.length} ${all.length===1?"participante":"participantes"}`;
+    $("emptyAll").hidden=all.length>0;
+    const box=$("people"); box.replaceChildren();
+    list.forEach(p=>{
+      const mine=p.id===myId, open=S.open.has(p.id);
+      const card=el("article","person"+(mine?" mine":""));
+      const btn=el("button","person-btn"); btn.type="button"; btn.setAttribute("aria-expanded",String(open)); btn.setAttribute("aria-controls","det-"+p.id);
+      const nm=el("span","pname"); nm.append(el("b",null,(p.name||"Sem nome")+(mine?" (você)":"")), el("small",null,fmtWhen(p.updated_at)));
+      const n=(p.items||[]).length;
+      btn.append(el("span","avatar",initials(p.name)), nm, el("span","count",`${n} ${n===1?"sugestão":"sugestões"}`));
+      btn.insertAdjacentHTML("beforeend",'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+      btn.onclick=()=>{ S.open.has(p.id)?S.open.delete(p.id):S.open.add(p.id); renderPeople(); };
+      card.append(btn);
+      const det=el("div","details"); det.id="det-"+p.id; det.hidden=!open;
+      if(open){
+        det.append(personDetails(p));
+        const sh=el("button","btn ghost","Compartilhar esta lista"); sh.type="button"; sh.style.justifySelf="start";
+        const st=el("p","status");
+        sh.onclick=()=>shareLink(personLink(p.id), `Lista de desejos de ${p.name}`, `Lista de desejos de ${p.name} no amigo secreto "${S.data.group.name}":`, st);
+        det.append(sh, st);
+      }
+      card.append(det); box.append(card);
+    });
+  }
+  $("search").addEventListener("input", renderPeople);
+
+  /* ---------- copiar / sair ---------- */
+  $("copyBtn").onclick=async()=>{
+    const t=$("shareLink").textContent;
+    try{ await navigator.clipboard.writeText(t); $("copyBtn").textContent="Copiado!"; }
+    catch(e){ const r=document.createRange(); r.selectNodeContents($("shareLink")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("copyBtn").textContent="Selecionado"; }
+    setTimeout(()=>$("copyBtn").textContent="Copiar link",1800);
+  };
+  $("logoutBtn").onclick=async()=>{ await S.sb.auth.signOut(); };
+  window.addEventListener("beforeunload",e=>{ if(S.dirty){ e.preventDefault(); e.returnValue=""; } });
+
+  /* ---------- início ---------- */
+  function openFromHash(){
+    const m=location.hash.match(/^#p-([0-9a-f-]{36})$/i);
+    if(!m || !S.data) return;
+    if(!S.data.members.some(x=>x.id===m[1])) return;
+    S.open.add(m[1]); renderPeople();
+    const card=document.getElementById("det-"+m[1]);
+    if(card) card.parentElement.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  window.addEventListener("hashchange", openFromHash);
+
+  async function route(){
+    S.route=parseRoute(); $("logoutBtn").hidden=!S.session;
+    if(S.route.name==="group"){ S.groupId=S.route.id; await renderGroup(); openFromHash(); }
+    else { await renderNew(); }
+  }
+  window.addEventListener("popstate", route);
+
+  if(!/^https:\/\/.+\.supabase\.co$/.test(SUPABASE_URL) || !window.supabase){
+    $("setupNotice").hidden=false; return;
+  }
+  S.sb=window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{persistSession:true, autoRefreshToken:true}});
+  S.sb.auth.getSession().then(({data})=>{ S.session=data.session; route(); });
+  S.sb.auth.onAuthStateChange((evt, session)=>{
+    const changed = (!!S.session) !== (!!session);
+    S.session=session;
+    if(changed){ S.draft=null; S.dirty=false; S.editing=false; S.touchedEdit=false; route(); }
+  });
+  setInterval(()=>{ if(document.visibilityState==="visible" && S.route && S.route.name==="group" && !S.dirty && !S.editing) renderGroup(); }, 60000);
+})();
+</script>
+</body>
+</html>
