@@ -7,8 +7,8 @@
 <meta name="description" content="Site em construção.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316261E'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='700' font-size='26' fill='%23F2F5F1' text-anchor='middle'%3EAC%3C/text%3E%3C/svg%3E">
 <style>
-:root{--bg:#F2F5F1;--ink:#16261E;--muted:#56685D;--line:#CBD6CC;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--bg:#101814;--ink:#E7EEE8;--muted:#9DB0A3;--line:#2E3F35;color-scheme:dark}}
+:root{--bg:#F2F5F1;--ink:#16261E;--muted:#56685D;--line:#CBD6CC;--berry:#B8304A;--on-berry:#FFFFFF;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#101814;--ink:#E7EEE8;--muted:#9DB0A3;--line:#2E3F35;--berry:#F0778D;--on-berry:#2A0A12;color-scheme:dark}}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,sans-serif;display:grid;place-items:center;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));box-sizing:border-box}
@@ -20,9 +20,18 @@ p{margin:0;color:var(--muted)}
 .bar i{display:block;width:40%;height:100%;background:var(--ink);border-radius:4px;animation:go 1.8s ease-in-out infinite}
 @keyframes go{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
 @media (prefers-reduced-motion:reduce){.bar i{animation:none;width:100%}}
+header{position:fixed;top:0;left:0;right:0;display:flex;justify-content:flex-end;align-items:center;
+  padding-top:calc(16px + env(safe-area-inset-top, 0px));padding-bottom:16px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.app-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;text-decoration:none;font-weight:600;
+  border-radius:10px;padding:10px 16px;background:var(--berry);color:var(--on-berry);font-size:.95rem}
+.app-btn:hover{filter:brightness(1.06)}
+.app-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.app-btn i{width:10px;height:10px;border-radius:3px;background:var(--on-berry);display:inline-block}
 </style>
 </head>
 <body>
+<header><a class="app-btn" href="/amigo-secreto"><i aria-hidden="true"></i>App Amigo Secreto</a></header>
 <main>
   <div class="mark" aria-hidden="true">AC</div>
   <h1>Em construção</h1>
