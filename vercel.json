@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/amigo-secreto/novo", "destination": "/amigo-secreto/app/index.html" },
+    { "source": "/amigo-secreto/g/:id", "destination": "/amigo-secreto/app/index.html" }
+  ],
+  "crons": [
+    { "path": "/api/keepalive", "schedule": "0 12 * * *" }
+  ]
+}
