@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amigo Secreto</title>
+<meta name="description" content="Veja o que cada participante gostaria de ganhar e monte a sua lista de sugestões.">
+<meta property="og:title" content="Amigo Secreto">
+<meta property="og:description" content="Veja o que cada participante gostaria de ganhar e monte a sua lista de sugestões.">
+<meta property="og:type" content="website">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='24' width='48' height='32' rx='4' fill='%231E4C38'/%3E%3Crect x='4' y='16' width='56' height='12' rx='3' fill='%23B8304A'/%3E%3Crect x='28' y='16' width='8' height='40' fill='%23F2F5F1'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* =====================================================================
+   CONFIGURAÇÃO: depois de publicar o Apps Script, cole a URL dele
+   na constante API_URL, no <script> no fim deste arquivo.
+   ===================================================================== */
+/* Layout: faixa do evento, cartão "Minha lista" (login → editor), e a lista de nomes que abre os detalhes. */
+:root{
+  --bg:#F2F5F1; --surface:#FFFFFF; --sunk:#E6ECE5; --line:#CBD6CC;
+  --ink:#16261E; --muted:#56685D;
+  --pine:#1E4C38; --pine-ink:#F2F5F1;
+  --berry:#B8304A; --berry-soft:#F6DDE2;
+  --gold:#A87A1C;
+  --ok:#2E7D4F; --warn:#9A5B00; --err:#B3261E;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#101814; --surface:#17221C; --sunk:#1E2B24; --line:#2E3F35;
+  --ink:#E7EEE8; --muted:#9DB0A3;
+  --pine:#7CC39C; --pine-ink:#0E1A13;
+  --berry:#F0778D; --berry-soft:#3A1E25;
+  --gold:#E0B456;
+  --ok:#6FCB93; --warn:#E5A84A; --err:#F28B82;
+  color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 64px;display:grid;gap:28px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2.2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.02em}
+h1 span{color:var(--berry)}
+h2{font-size:1.45rem;font-weight:700}
+h3{font-size:1.08rem;font-weight:700}
+p{margin:0}
+a{color:var(--pine)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--berry);outline-offset:2px}
+.eyebrow{font-size:.74rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.lede{color:var(--muted);max-width:62ch}
+
+header{display:grid;gap:14px}
+.strip{display:flex;flex-wrap:wrap;gap:10px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 14px;display:flex;gap:8px;align-items:baseline}
+.fact .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.fact b{font-weight:600}
+.fact.empty b{color:var(--muted);font-weight:500}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600;display:inline-flex;gap:6px;align-items:center;justify-content:center;text-align:center}
+.btn:hover{border-color:var(--pine)}
+.btn.primary{background:var(--pine);color:var(--pine-ink);border-color:var(--pine)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 10px}
+.btn.ghost:hover{color:var(--ink)}
+.btn.danger{color:var(--err)}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+label{display:grid;gap:4px;font-size:.84rem;color:var(--muted);font-weight:500;min-width:0}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;min-width:0;color:var(--ink)}
+input:focus,select:focus{border-color:var(--pine);outline:none;box-shadow:0 0 0 3px color-mix(in srgb, var(--pine) 18%, transparent)}
+.status{font-size:.88rem;color:var(--muted);min-height:1.3em}
+.status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.warn{color:var(--warn)}
+
+/* Card "Minha lista" */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:18px}
+.panel-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-end}
+.login{display:grid;gap:12px;max-width:440px}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.inline input{flex:1 1 220px}
+.code-input{font-family:var(--mono);letter-spacing:.4em;font-size:1.2rem;text-align:center;max-width:220px}
+.who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+.who b{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.grid-profile{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.grid-profile .full{grid-column:1/-1}
+.items{display:grid;gap:10px}
+.item-row{display:grid;grid-template-columns:28px 2fr 2fr 1fr 1fr auto;gap:8px;align-items:end;padding:12px;border-radius:10px;background:var(--sunk)}
+.item-row .note{grid-column:2/-1}
+.item-row .num{font-family:var(--mono);color:var(--muted);font-size:.85rem;align-self:center}
+.foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.9rem}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+
+/* Lista de participantes */
+.list-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between}
+.list-head input{max-width:260px}
+.people{display:grid;gap:10px}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.person.mine{border-color:var(--pine)}
+.person-btn{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;padding:14px 18px}
+.person-btn:focus-visible{outline:2px solid var(--berry);outline-offset:-2px}
+.person-btn:hover{background:var(--sunk)}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--berry-soft);color:var(--berry);font-family:var(--display);font-weight:800;font-size:1rem}
+.person.mine .avatar{background:var(--pine);color:var(--pine-ink)}
+.pname{display:grid;min-width:0}
+.pname b{font-family:var(--display);font-size:1.06rem;overflow-wrap:anywhere}
+.pname small{color:var(--muted);font-size:.8rem}
+.count{font-family:var(--mono);font-size:.78rem;color:var(--muted);white-space:nowrap}
+.chev{width:18px;height:18px;transition:transform .2s;color:var(--muted)}
+.person-btn[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.details{padding:4px 18px 18px 70px;display:grid;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.78rem;border-radius:999px;padding:2px 10px;background:var(--sunk);color:var(--muted)}
+.gifts{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.gift{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding-top:10px;border-top:1px dashed var(--line)}
+.gift:first-child{border-top:0;padding-top:0}
+.prio{width:9px;height:9px;border-radius:50%;margin-top:7px;display:inline-block}
+.legend .prio{margin:0}
+.prio.alta{background:var(--berry)} .prio.media{background:var(--gold)} .prio.baixa{background:var(--line)}
+.gift-body{min-width:0;display:grid;gap:2px}
+.gift-title{font-weight:600;overflow-wrap:anywhere}
+.gift-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.84rem;color:var(--muted)}
+.gift-meta .price{font-family:var(--mono);font-size:.8rem;color:var(--ink)}
+.gift-note{font-size:.86rem;color:var(--muted);overflow-wrap:anywhere}
+.avoid{font-size:.86rem;color:var(--muted);border-left:3px solid var(--berry);padding-left:8px}
+.empty-state{border:1.5px dashed var(--line);border-radius:14px;padding:28px;text-align:center;color:var(--muted);display:grid;gap:6px;justify-items:center}
+.notice{background:var(--berry-soft);border-radius:10px;padding:12px 16px;font-size:.92rem}
+footer{color:var(--muted);font-size:.8rem;text-align:center}
+
+@media (max-width:760px){
+  .grid-profile{grid-template-columns:1fr 1fr}
+  .grid-profile .name{grid-column:1/-1}
+  .item-row{grid-template-columns:1fr 1fr}
+  .item-row .num,.item-row .t,.item-row .l,.item-row .note{grid-column:1/-1}
+  .item-row .rm{grid-column:1/-1;justify-self:end}
+  .details{padding-left:18px}
+  .person-btn{grid-template-columns:auto 1fr auto;padding:12px 14px}
+  .count{grid-column:2;grid-row:2;margin-top:-10px}
+  .chev{grid-column:3;grid-row:1}
+}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Lista de desejos compartilhada</p>
+    <h1>Amigo <span>Secreto</span></h1>
+    <p class="lede">Veja o que cada participante gostaria de ganhar. Para montar ou alterar a sua lista, entre com seu e-mail: você recebe um código e pronto, sem senha.</p>
+    <div class="strip" id="strip"></div>
+  </header>
+
+  <p class="notice" id="setupNotice" hidden>Falta configurar: cole a URL do Apps Script na constante <b>API_URL</b> no fim deste arquivo.</p>
+
+  <!-- ============ Minha lista ============ -->
+  <section class="panel" aria-labelledby="meTitle">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Sua lista</p>
+        <h2 id="meTitle">Monte a sua lista de presentes</h2>
+      </div>
+      <div class="who" id="who" hidden>Conectado como <b id="whoEmail"></b>
+        <button class="btn ghost" type="button" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+
+    <!-- Passo 1: e-mail -->
+    <form class="login" id="stepEmail">
+      <label for="email">Seu e-mail</label>
+      <div class="inline">
+        <input id="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com">
+        <button class="btn primary" type="submit" id="sendCodeBtn">Receber código</button>
+      </div>
+      <p class="status" id="emailStatus"></p>
+    </form>
+
+    <!-- Passo 2: código -->
+    <form class="login" id="stepCode" hidden>
+      <p>Enviamos um código de 6 dígitos para <b id="codeEmail"></b>. Confira também a caixa de spam.</p>
+      <label for="code">Código</label>
+      <div class="inline">
+        <input id="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="000000">
+        <button class="btn primary" type="submit" id="verifyBtn">Entrar</button>
+      </div>
+      <div class="inline">
+        <button class="btn ghost" type="button" id="resendBtn">Reenviar código</button>
+        <button class="btn ghost" type="button" id="changeEmailBtn">Usar outro e-mail</button>
+      </div>
+      <p class="status" id="codeStatus"></p>
+    </form>
+
+    <!-- Passo 3: editor -->
+    <form id="editor" hidden>
+      <div style="display:grid;gap:18px">
+        <div class="legend" aria-label="Legenda de prioridade">
+          <span><i class="prio alta"></i>Quero muito</span>
+          <span><i class="prio media"></i>Gostaria</span>
+          <span><i class="prio baixa"></i>Se der</span>
+        </div>
+        <div class="grid-profile">
+          <label class="name">Seu nome (como o grupo te conhece)<input id="fName" maxlength="60" required placeholder="ex.: Ana Paula"></label>
+          <label>Camiseta<input id="fShirt" maxlength="10" placeholder="P, M, G…"></label>
+          <label>Calçado<input id="fShoe" maxlength="10" placeholder="ex.: 39"></label>
+          <label class="full">Prefiro não ganhar (opcional)<input id="fAvoid" maxlength="200" placeholder="ex.: perfume, chocolate amargo, canecas"></label>
+        </div>
+        <div class="items" id="items"></div>
+        <div><button class="btn" type="button" id="addItem">+ Adicionar sugestão</button></div>
+        <div class="foot">
+          <p class="status" id="saveStatus"></p>
+          <div class="inline">
+            <span class="confirm" id="delConfirm" hidden>Apagar sua lista inteira?
+              <button class="btn danger" type="button" id="delYes">Apagar</button>
+              <button class="btn ghost" type="button" id="delNo">Cancelar</button>
+            </span>
+            <button class="btn ghost danger" type="button" id="delBtn" hidden>Apagar lista</button>
+            <button class="btn primary" type="submit" id="saveBtn">Salvar minha lista</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============ Participantes ============ -->
+  <section style="display:grid;gap:16px" aria-labelledby="allTitle">
+    <div class="list-head">
+      <div>
+        <p class="eyebrow" id="count">Participantes</p>
+        <h2 id="allTitle">O que cada um quer</h2>
+      </div>
+      <input id="search" type="search" placeholder="Buscar pelo nome" aria-label="Buscar participante">
+    </div>
+    <p class="status" id="listStatus">Carregando as listas…</p>
+    <div class="people" id="people"></div>
+    <div class="empty-state" id="emptyAll" hidden>
+      <h3>Nenhuma lista ainda</h3>
+      <p>Os nomes aparecem aqui assim que cada participante salvar as suas sugestões.</p>
+    </div>
+  </section>
+
+  <footer>Os e-mails dos participantes não aparecem para ninguém.</footer>
+</div>
+
+<script>
+/* ===================== CONFIGURAÇÃO ===================== */
+const API_URL = "https://script.google.com/macros/s/AKfycbyrHDc8ZFofkC_3z4vws6zHkSutDQPmeYGOWimdeA35DCxJwbclmO2ZmY-ei08ScX73/exec"; // termina em /exec
+/* ======================================================== */
+
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const MAX_ITEMS = 15;
+  const PRIO = {alta:"Quero muito", media:"Gostaria", baixa:"Se der"};
+  const PRIO_ORDER = ["alta","media","baixa"];
+  const S = {token:null, email:null, me:null, people:[], event:{}, draft:null, dirty:false, busy:false, open:new Set()};
+
+  /* ---------- utilidades ---------- */
+  const store = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+    del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  };
+  const el = (tag, cls, text) => { const n=document.createElement(tag); if(cls) n.className=cls; if(text!=null) n.textContent=text; return n; };
+  const newId = () => Math.random().toString(36).slice(2,10);
+  const blankItem = () => ({id:newId(), title:"", link:"", price:"", priority:"media", note:""});
+  const safeUrl = u => { try{ const x=new URL(String(u||"").trim()); return /^https?:$/.test(x.protocol) ? x.href : null; }catch(e){ return null; } };
+  const status = (id,msg,kind) => { const n=$(id); n.textContent=msg||""; n.className="status"+(kind?" "+kind:""); };
+  const fmtDate = d => { if(!d) return ""; const p=String(d).split("-"); return p.length===3 ? `${p[2]}/${p[1]}/${p[0]}` : d; };
+  const fmtWhen = iso => { if(!iso) return ""; const t=new Date(iso); if(isNaN(t)) return ""; return "atualizada em "+t.toLocaleDateString("pt-BR"); };
+  const initials = name => (String(name||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("") || "?").toUpperCase();
+  const configured = () => /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL);
+
+  /* ---------- API ---------- */
+  async function apiGet(){
+    const r = await fetch(API_URL + "?action=data", {method:"GET", redirect:"follow"});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||"Erro");
+    return j.data;
+  }
+  async function apiPost(action, data){
+    const r = await fetch(API_URL, {method:"POST", redirect:"follow",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(Object.assign({action}, data||{}))});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||"Erro");
+    return j.data;
+  }
+  const netMsg = e => (e && e.message && !/fetch|network|JSON/i.test(e.message)) ? e.message : "Não foi possível conectar. Verifique sua internet e tente de novo.";
+
+  /* ---------- evento ---------- */
+  function renderStrip(){
+    const s=$("strip"); s.replaceChildren();
+    const e=S.event||{};
+    [["Troca",fmtDate(e.date)],["Valor sugerido",e.budget],["Local",e.place]].forEach(([k,v])=>{
+      const f=el("div","fact"+(v?"":" empty")); f.append(el("span","k",k), el("b",null,v||"a definir")); s.append(f);
+    });
+  }
+
+  /* ---------- participantes ---------- */
+  function sortedItems(items){ return (items||[]).slice().sort((a,b)=>PRIO_ORDER.indexOf(a.priority)-PRIO_ORDER.indexOf(b.priority)); }
+  function renderPeople(){
+    const q=$("search").value.trim().toLowerCase();
+    const myId = S.me && S.me.id;
+    const list = S.people.filter(p=>!q || (p.name||"").toLowerCase().includes(q))
+      .sort((a,b)=> a.id===myId ? -1 : b.id===myId ? 1 : (a.name||"").localeCompare(b.name||"","pt-BR"));
+    $("count").textContent = `${S.people.length} ${S.people.length===1?"participante":"participantes"}`;
+    $("emptyAll").hidden = S.people.length>0;
+    const box=$("people"); box.replaceChildren();
+    list.forEach(p=>{
+      const mine = p.id===myId;
+      const card=el("article","person"+(mine?" mine":""));
+      const btn=el("button","person-btn"); btn.type="button";
+      const panelId="det-"+p.id; btn.setAttribute("aria-controls",panelId);
+      const open=S.open.has(p.id); btn.setAttribute("aria-expanded", String(open));
+      const nm=el("span","pname"); nm.append(el("b",null,(p.name||"Sem nome")+(mine?" (você)":"")), el("small",null,fmtWhen(p.updatedAt)));
+      const n=(p.items||[]).length;
+      btn.append(el("span","avatar",initials(p.name)), nm, el("span","count",`${n} ${n===1?"sugestão":"sugestões"}`));
+      btn.insertAdjacentHTML("beforeend",'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+      btn.onclick=()=>{ S.open.has(p.id)?S.open.delete(p.id):S.open.add(p.id); renderPeople(); };
+      card.append(btn);
+
+      const det=el("div","details"); det.id=panelId; det.hidden=!open;
+      if(open){
+        const chips=el("div","chips");
+        if(p.shirt) chips.append(el("span","chip","Camiseta "+p.shirt));
+        if(p.shoe) chips.append(el("span","chip","Calçado "+p.shoe));
+        if(chips.children.length) det.append(chips);
+        const ul=el("ul","gifts");
+        sortedItems(p.items).forEach(it=>{
+          const li=el("li","gift");
+          const dot=el("i","prio "+(PRIO[it.priority]?it.priority:"media")); dot.title=PRIO[it.priority]||PRIO.media;
+          const body=el("div","gift-body"); body.append(el("span","gift-title",it.title));
+          const meta=el("div","gift-meta");
+          if(it.price) meta.append(el("span","price",it.price));
+          const url=safeUrl(it.link);
+          if(url){ const a=el("a",null,"Ver referência ↗"); a.href=url; a.target="_blank"; a.rel="noopener noreferrer nofollow"; meta.append(a); }
+          if(meta.children.length) body.append(meta);
+          if(it.note) body.append(el("span","gift-note",it.note));
+          li.append(dot,body); ul.append(li);
+        });
+        det.append(ul);
+        if(p.avoid) det.append(el("p","avoid","Prefere não ganhar: "+p.avoid));
+      }
+      card.append(det);
+      box.append(card);
+    });
+  }
+  $("search").addEventListener("input", renderPeople);
+
+  async function loadPublic(silent){
+    try{
+      const d = await apiGet();
+      S.event=d.event||{}; S.people=d.people||[];
+      renderStrip(); renderPeople(); status("listStatus","");
+      $("listStatus").hidden=true;
+    }catch(e){ if(!silent){ status("listStatus", netMsg(e), "err"); $("listStatus").hidden=false; } }
+  }
+
+  /* ---------- telas de login ---------- */
+  function show(step){
+    $("stepEmail").hidden = step!=="email";
+    $("stepCode").hidden = step!=="code";
+    $("editor").hidden = step!=="editor";
+    $("who").hidden = step!=="editor";
+  }
+
+  $("stepEmail").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    const email=$("email").value.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ status("emailStatus","Digite um e-mail válido.","err"); return; }
+    S.busy=true; $("sendCodeBtn").disabled=true; status("emailStatus","Enviando código…");
+    try{
+      await apiPost("requestCode",{email});
+      S.email=email; store.set("as_email",email);
+      $("codeEmail").textContent=email; $("code").value=""; status("codeStatus","");
+      show("code"); $("code").focus();
+    }catch(err){ status("emailStatus", netMsg(err), "err"); }
+    finally{ S.busy=false; $("sendCodeBtn").disabled=false; }
+  });
+
+  $("code").addEventListener("input", ()=>{ $("code").value=$("code").value.replace(/\D/g,"").slice(0,6); if($("code").value.length===6) $("stepCode").requestSubmit(); });
+
+  $("stepCode").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    const code=$("code").value.trim();
+    if(code.length!==6){ status("codeStatus","O código tem 6 dígitos.","err"); return; }
+    S.busy=true; $("verifyBtn").disabled=true; status("codeStatus","Conferindo…");
+    try{
+      const r = await apiPost("verifyCode",{email:S.email, code});
+      S.token=r.token; store.set("as_token", r.token);
+      enterEditor(r.me, r.email);
+    }catch(err){ status("codeStatus", netMsg(err), "err"); $("code").select(); }
+    finally{ S.busy=false; $("verifyBtn").disabled=false; }
+  });
+
+  $("resendBtn").onclick=async()=>{
+    if(S.busy) return; S.busy=true; status("codeStatus","Reenviando…");
+    try{ await apiPost("requestCode",{email:S.email}); status("codeStatus","Novo código enviado.","ok"); }
+    catch(err){ status("codeStatus", netMsg(err), "err"); }
+    finally{ S.busy=false; }
+  };
+  $("changeEmailBtn").onclick=()=>{ show("email"); $("email").focus(); };
+
+  $("logoutBtn").onclick=async()=>{
+    const t=S.token; S.token=null; S.me=null; store.del("as_token");
+    show("email"); status("emailStatus","Você saiu. Para editar de novo, peça um novo código."); renderPeople();
+    try{ await apiPost("logout",{token:t}); }catch(e){}
+  };
+
+  function sessionExpired(){
+    S.token=null; store.del("as_token");
+    $("email").value=S.email||store.get("as_email")||"";
+    show("email"); status("emailStatus","Sua sessão expirou. Peça um novo código para continuar.","warn");
+  }
+
+  /* ---------- editor ---------- */
+  function enterEditor(me, email){
+    S.me=me; S.email=email||S.email; $("whoEmail").textContent=S.email;
+    S.draft = me ? JSON.parse(JSON.stringify(me)) : {name:"", shirt:"", shoe:"", avoid:"", items:[]};
+    if(!S.draft.items || !S.draft.items.length) S.draft.items=[blankItem()];
+    S.draft.items.forEach(it=>{ if(!it.id) it.id=newId(); });
+    S.dirty=false;
+    $("meTitle").textContent = me ? `Oi, ${(me.name||"").split(" ")[0]}! Sua lista está salva.` : "Monte a sua lista de presentes";
+    renderEditor(); show("editor"); renderPeople();
+    status("saveStatus", me ? "Altere o que quiser e salve de novo." : "");
+  }
+
+  function field(label,cls,control){ const l=el("label",cls,label); l.append(control); return l; }
+  function inp(k,v,ph,max,i,type){ const n=el("input"); n.id=`it-${i}-${k}`; n.dataset.k=k; n.value=v||""; n.placeholder=ph; n.maxLength=max; if(type) n.type=type; return n; }
+
+  function renderEditor(){
+    const d=S.draft;
+    $("fName").value=d.name||""; $("fShirt").value=d.shirt||""; $("fShoe").value=d.shoe||""; $("fAvoid").value=d.avoid||"";
+    $("delBtn").hidden=!S.me; $("delConfirm").hidden=true;
+    const box=$("items"); box.replaceChildren();
+    d.items.forEach((it,i)=>{
+      const row=el("div","item-row");
+      row.append(el("span","num",String(i+1).padStart(2,"0")));
+      row.append(field("Presente","t",inp("title",it.title,"ex.: Fone bluetooth",80,i)));
+      row.append(field("Link de referência (opcional)","l",inp("link",it.link,"https://…",400,i,"url")));
+      row.append(field("Faixa de preço","p",inp("price",it.price,"ex.: R$ 120",30,i)));
+      const sel=el("select"); sel.id=`it-${i}-priority`; sel.dataset.k="priority";
+      Object.entries(PRIO).forEach(([v,t])=>{ const o=el("option",null,t); o.value=v; if((it.priority||"media")===v) o.selected=true; sel.append(o); });
+      row.append(field("Prioridade","pr",sel));
+      const rm=el("button","btn ghost rm","Remover"); rm.type="button"; rm.dataset.rm=it.id; rm.setAttribute("aria-label",`Remover sugestão ${i+1}`);
+      row.append(rm);
+      row.append(field("Observação (cor, tamanho, modelo…)","note",inp("note",it.note,"opcional",200,i)));
+      box.append(row);
+    });
+    $("addItem").disabled = d.items.length>=MAX_ITEMS;
+  }
+
+  function readForm(){
+    const d=S.draft;
+    d.name=$("fName").value.trim(); d.shirt=$("fShirt").value.trim(); d.shoe=$("fShoe").value.trim(); d.avoid=$("fAvoid").value.trim();
+    [...$("items").children].forEach((row,i)=>{ const it=d.items[i]; if(!it) return; row.querySelectorAll("[data-k]").forEach(x=>{ it[x.dataset.k]=x.value.trim(); }); });
+  }
+
+  $("editor").addEventListener("input", ()=>{ S.dirty=true; status("saveStatus","Alterações não salvas.","warn"); });
+  $("addItem").onclick=()=>{ readForm(); if(S.draft.items.length<MAX_ITEMS){ S.draft.items.push(blankItem()); S.dirty=true; renderEditor(); const n=$(`it-${S.draft.items.length-1}-title`); n&&n.focus(); } };
+  $("items").addEventListener("click", e=>{
+    const id=e.target.dataset && e.target.dataset.rm; if(!id) return;
+    readForm(); S.draft.items=S.draft.items.filter(x=>x.id!==id); if(!S.draft.items.length) S.draft.items=[blankItem()];
+    S.dirty=true; renderEditor(); status("saveStatus","Alterações não salvas.","warn");
+  });
+
+  $("editor").addEventListener("submit", async e=>{
+    e.preventDefault(); if(S.busy) return;
+    readForm();
+    const d=S.draft;
+    if(!d.name){ status("saveStatus","Coloque seu nome para o grupo saber de quem é a lista.","err"); $("fName").focus(); return; }
+    const items=d.items.filter(x=>x.title).map(x=>({id:x.id,title:x.title,link:safeUrl(x.link)||"",price:x.price,priority:x.priority,note:x.note}));
+    if(!items.length){ status("saveStatus","Adicione pelo menos uma sugestão de presente.","err"); return; }
+    const badLink=d.items.some(x=>x.link && !safeUrl(x.link));
+    S.busy=true; $("saveBtn").disabled=true; status("saveStatus","Salvando…");
+    try{
+      const r = await apiPost("saveMyList",{token:S.token, payload:{name:d.name,shirt:d.shirt,shoe:d.shoe,avoid:d.avoid,items}});
+      S.people=r.people||S.people; enterEditor(r.me, S.email);
+      if(r.me) S.open.add(r.me.id);
+      renderPeople();
+      status("saveStatus", badLink ? "Lista salva. Um link não parecia válido e ficou de fora." : "Lista salva! Você pode voltar e alterar quando quiser.", badLink?"warn":"ok");
+    }catch(err){
+      if(err.message==="SESSAO_EXPIRADA"){ sessionExpired(); }
+      else status("saveStatus", netMsg(err), "err");
+    }finally{ S.busy=false; $("saveBtn").disabled=false; }
+  });
+
+  $("delBtn").onclick=()=>{ $("delConfirm").hidden=false; $("delBtn").hidden=true; };
+  $("delNo").onclick=()=>{ $("delConfirm").hidden=true; $("delBtn").hidden=false; };
+  $("delYes").onclick=async()=>{
+    if(S.busy) return; S.busy=true; status("saveStatus","Apagando…");
+    try{ const r=await apiPost("deleteMyList",{token:S.token}); S.people=r.people||[]; enterEditor(null,S.email); status("saveStatus","Lista apagada.","ok"); }
+    catch(err){ if(err.message==="SESSAO_EXPIRADA") sessionExpired(); else status("saveStatus", netMsg(err), "err"); }
+    finally{ S.busy=false; }
+  };
+
+  window.addEventListener("beforeunload", e=>{ if(S.dirty){ e.preventDefault(); e.returnValue=""; } });
+
+  /* ---------- início ---------- */
+  renderStrip();
+  if(!configured()){
+    $("setupNotice").hidden=false; status("listStatus","As listas aparecem aqui depois da configuração.","warn");
+    $("sendCodeBtn").disabled=true; return;
+  }
+  $("email").value = store.get("as_email") || "";
+  loadPublic(false);
+  setInterval(()=>{ if(document.visibilityState==="visible") loadPublic(true); }, 60000);
+
+  const saved=store.get("as_token");
+  if(saved){
+    S.token=saved; S.email=store.get("as_email");
+    apiPost("getMe",{token:saved}).then(r=>enterEditor(r.me, r.email))
+      .catch(err=>{ if(err.message==="SESSAO_EXPIRADA") sessionExpired(); else { show("email"); } });
+  }
+})();
+</script>
+</body>
+</html>
