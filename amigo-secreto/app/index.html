@@ -236,14 +236,15 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
 
       <section class="panel" aria-labelledby="newTitle">
         <div class="panel-head"><div><p class="eyebrow">Novo grupo</p><h2 id="newTitle">Entre para criar o seu grupo</h2></div></div>
+        <fieldset class="modes" style="margin-bottom:18px">
+          <legend>1. Como vai ser o seu grupo?</legend>
+          <label class="mode"><input type="radio" name="cMode" value="draw" checked><b>Lista + sorteio</b><small>Cada um monta a lista e o sorteio é feito aqui, com resultado na tela e por e-mail.</small></label>
+          <label class="mode"><input type="radio" name="cMode" value="list"><b>Só a lista</b><small>O sorteio já foi feito (papel, outro app). Aqui fica só a lista de desejos de cada um.</small></label>
+        </fieldset>
+        <p class="eyebrow" id="newStep2" style="margin:0 0 10px">2. Entre com seu e-mail</p>
         <div id="newLoginSlot"></div>
         <form id="createForm" hidden>
           <div style="display:grid;gap:14px">
-            <fieldset class="modes">
-              <legend>Como vai ser o seu grupo?</legend>
-              <label class="mode"><input type="radio" name="cMode" value="draw" checked><b>Lista + sorteio</b><small>Cada um monta a lista e o sorteio é feito aqui, com resultado na tela e por e-mail.</small></label>
-              <label class="mode"><input type="radio" name="cMode" value="list"><b>Só a lista</b><small>O sorteio já foi feito (papel, outro app). Aqui fica só a lista de desejos de cada um.</small></label>
-            </fieldset>
             <div class="grid-2">
               <label class="full">Nome do grupo<input id="cName" maxlength="80" required placeholder="ex.: Amigo Secreto da Família 2026"></label>
               <label>Data da troca<input id="cDate" type="date"></label>
@@ -512,6 +513,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const logged=!!S.session;
     $("newTitle").textContent = logged ? "Dados do grupo" : "Entre para criar o seu grupo";
     $("createForm").hidden=!logged;
+    $("newStep2").textContent = logged ? "2. Dados do grupo" : "2. Entre com seu e-mail";
+    // lembra a escolha feita antes do login (o login pelo link recarrega a página)
+    try{ const saved=localStorage.getItem("as2_mode"); const r=saved&&document.querySelector(`input[name="cMode"][value="${saved}"]`); if(r) r.checked=true; }catch(e){}
+    document.querySelectorAll('input[name="cMode"]').forEach(r=>r.onchange=()=>{ try{ localStorage.setItem("as2_mode",r.value); }catch(e){} });
     if(!logged){ mountLogin($("newLoginSlot"), ()=>{}); $("myGroupsPanel").hidden=true; return; }
     $("newLoginSlot").replaceChildren();
     try{
