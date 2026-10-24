@@ -15,6 +15,7 @@ const ERRORS = {
   SOMENTE_ORGANIZADOR: [403, 'Só administradores do grupo podem fazer o sorteio.'],
   MINIMO_3_PARTICIPANTES: [400, 'O sorteio precisa de pelo menos 3 participantes.'],
   LIMITE_SORTEIOS: [429, 'Este grupo já atingiu o limite de 5 sorteios.'],
+  GRUPO_SO_LISTA: [400, 'Este grupo é só de lista. Mude o tipo para "Lista + sorteio" para sortear.'],
   GRUPO_NAO_ENCONTRADO: [404, 'Grupo não encontrado.']
 };
 
