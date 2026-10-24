@@ -452,7 +452,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const st=fEmail.querySelector("[data-status]");
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ status(st,"Digite um e-mail válido.","err"); return; }
       S.busy=true; status(st,"Enviando código…");
-      const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true}});
+      const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true, emailRedirectTo: location.origin + location.pathname}});
       S.busy=false;
       if(error){ status(st, /rate|seconds/i.test(error.message)?"Aguarde um minuto antes de pedir outro código.":"Não foi possível enviar o código. Tente de novo.","err"); return; }
       try{ localStorage.setItem("as2_email",email); }catch(e){}
