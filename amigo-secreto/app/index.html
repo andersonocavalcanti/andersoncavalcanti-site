@@ -473,7 +473,14 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       S.busy=true; status(st,"Enviando código…");
       const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true, emailRedirectTo: location.origin + location.pathname}});
       S.busy=false;
-      if(error){ status(st, /rate|seconds/i.test(error.message)?"Aguarde um minuto antes de pedir outro código.":"Não foi possível enviar o código. Tente de novo.","err"); return; }
+      if(error){
+        const m=String(error.message||"");
+        const secs=(m.match(/after (\d+) seconds?/i)||[])[1];
+        const msg = secs ? `Por segurança, aguarde ${secs} segundos antes de pedir outro acesso.`
+          : /rate limit|too many/i.test(m) ? "Muitos acessos pedidos agora. Tente de novo em alguns minutos ou use o último e-mail que você recebeu."
+          : "Não foi possível enviar o e-mail. Tente de novo.";
+        status(st, msg, "err"); return;
+      }
       try{ localStorage.setItem("as2_email",email); }catch(e){}
       root.querySelector("[data-email]").textContent=email;
       fEmail.hidden=true; fCode.hidden=false; fCode.code.value=""; fCode.code.focus();
