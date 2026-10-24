@@ -65,6 +65,15 @@ header{display:grid;gap:12px}
 .chip-status{border-radius:999px;padding:6px 14px;font-weight:600;font-size:.85rem}
 .chip-status.open{background:var(--sunk);color:var(--muted)}
 .chip-status.drawn{background:var(--berry-soft);color:var(--berry)}
+.chip-status.list{background:var(--sunk);color:var(--ink)}
+.modes{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.modes legend{font-weight:600;margin-bottom:8px;padding:0}
+.mode{position:relative;display:grid;gap:4px;border:1.5px solid var(--line);border-radius:12px;padding:14px 14px 14px 44px;cursor:pointer;background:var(--card, transparent)}
+.mode input{position:absolute;left:14px;top:16px;width:18px;height:18px;margin:0;accent-color:var(--berry)}
+.mode b{font-size:1rem}
+.mode small{color:var(--muted);line-height:1.4}
+.mode:has(input:checked){border-color:var(--berry);box-shadow:0 0 0 1px var(--berry) inset}
+.mode:has(input:focus-visible){outline:2px solid var(--berry);outline-offset:2px}
 
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600;display:inline-flex;gap:6px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:var(--ink)}
 .btn:hover{border-color:var(--pine)}
@@ -196,11 +205,11 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
     <div class="login" data-login>
       <form data-step="email" class="login">
         <label>Seu e-mail<input name="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com"></label>
-        <div class="inline"><button class="btn primary" type="submit">Receber código</button></div>
+        <div class="inline"><button class="btn primary" type="submit">Receber acesso por e-mail</button></div>
         <p class="status" data-status></p>
       </form>
       <form data-step="code" class="login" hidden>
-        <p>Enviamos um código de 6 dígitos para <b data-email></b>. Confira também a caixa de spam.</p>
+        <p>Enviamos um e-mail para <b data-email></b>. Você pode <b>clicar no botão do e-mail</b> ou <b>digitar aqui o código de 6 dígitos</b>. Confira também a caixa de spam.</p>
         <label>Código<input name="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000"></label>
         <div class="inline">
           <button class="btn primary" type="submit">Entrar</button>
@@ -215,13 +224,13 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
   <main id="viewNew" hidden>
     <div style="display:grid;gap:26px">
       <section class="hero">
-        <p class="eyebrow">Grátis · sem senha · sorteio por e-mail</p>
+        <p class="eyebrow">Grátis · sem senha · com ou sem sorteio</p>
         <h1>Crie o seu <span>amigo secreto</span></h1>
-        <p class="lede">Monte o grupo, mande o link no WhatsApp e cada pessoa cadastra a lista de desejos dela. Na hora do sorteio, cada um descobre quem tirou na tela e recebe por e-mail.</p>
+        <p class="lede">Monte o grupo, mande o link no WhatsApp e cada pessoa cadastra a lista de desejos dela. Já fizeram o sorteio de outro jeito? Use só a lista. Quer sortear aqui? Cada um descobre quem tirou na tela e recebe por e-mail.</p>
         <div class="steps">
-          <div class="step"><b>1. Crie o grupo</b><small>Nome, data, valor e quantidade de pessoas.</small></div>
+          <div class="step"><b>1. Crie o grupo</b><small>Escolha: só a lista ou lista com sorteio.</small></div>
           <div class="step"><b>2. Compartilhe o link</b><small>Cada um entra com o e-mail e monta a lista.</small></div>
-          <div class="step"><b>3. Sorteie</b><small>Ninguém tira a si mesmo, nem o organizador vê o resultado.</small></div>
+          <div class="step"><b>3. Sorteie (opcional)</b><small>Ninguém tira a si mesmo, nem o organizador vê o resultado.</small></div>
         </div>
       </section>
 
@@ -230,6 +239,11 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
         <div id="newLoginSlot"></div>
         <form id="createForm" hidden>
           <div style="display:grid;gap:14px">
+            <fieldset class="modes">
+              <legend>Como vai ser o seu grupo?</legend>
+              <label class="mode"><input type="radio" name="cMode" value="draw" checked><b>Lista + sorteio</b><small>Cada um monta a lista e o sorteio é feito aqui, com resultado na tela e por e-mail.</small></label>
+              <label class="mode"><input type="radio" name="cMode" value="list"><b>Só a lista</b><small>O sorteio já foi feito (papel, outro app). Aqui fica só a lista de desejos de cada um.</small></label>
+            </fieldset>
             <div class="grid-2">
               <label class="full">Nome do grupo<input id="cName" maxlength="80" required placeholder="ex.: Amigo Secreto da Família 2026"></label>
               <label>Data da troca<input id="cDate" type="date"></label>
@@ -333,7 +347,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
       <section class="panel admin" id="adminPanel" hidden aria-labelledby="admTitle">
         <div class="panel-head"><div><p class="eyebrow">Só administradores veem</p><h2 id="admTitle">Painel do organizador</h2></div></div>
 
-        <div style="display:grid;gap:10px">
+        <div style="display:grid;gap:10px" id="drawSection">
           <h3>Sorteio</h3>
           <p class="lede" id="drawInfo"></p>
           <div class="inline" id="drawActions"></div>
@@ -360,6 +374,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
               <label>Valor sugerido<input id="eBudget" maxlength="40"></label>
               <label>Local<input id="ePlace" maxlength="80"></label>
               <label>Máximo de participantes<input id="eMax" type="number" min="3" max="100" required></label>
+              <label>Tipo do grupo<select id="eMode"><option value="draw">Lista + sorteio</option><option value="list">Só a lista</option></select></label>
             </div>
             <div class="inline"><button class="btn primary" type="submit">Salvar dados</button></div>
             <p class="status" id="groupStatus"></p>
@@ -420,8 +435,12 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     SOMENTE_CRIADOR:"Só quem criou o grupo pode nomear administradores.",
     ORGANIZADOR_NAO_SAI:"O organizador não pode sair do grupo.",
     LIMITE_GRUPOS_DIA:"Você criou muitos grupos hoje. Tente amanhã.",
-    LIMITE_MENOR_QUE_PARTICIPANTES:"O limite não pode ser menor que o número de participantes."
+    LIMITE_MENOR_QUE_PARTICIPANTES:"O limite não pode ser menor que o número de participantes.",
+    GRUPO_SO_LISTA:"Este grupo é só de lista. Mude o tipo para \"Lista + sorteio\" para sortear.",
+    DESFAZER_SORTEIO_ANTES:"Reabra o grupo (desfazendo o sorteio) antes de mudar para \"Só a lista\"."
   };
+  const isList=g=>g && g.mode==="list";
+  const groupState=g=>isList(g)?{cls:"list",chip:"Só lista",short:"Só lista"}:(g.status==="drawn"?{cls:"drawn",chip:"Sorteado",short:"Sorteado"}:{cls:"open",chip:"Aberto para entrar",short:"Aberto"});
   const S = {sb:null, session:null, route:null, groupId:null, data:null, draft:null, dirty:false, editing:false, busy:false, open:new Set(), confirmAction:null};
 
   /* ---------- utilidades ---------- */
@@ -495,7 +514,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       groups.forEach(g=>{
         const a=el("a"); a.href=`/amigo-secreto/g/${g.id}`;
         const l=el("span"); l.append(el("b",null,g.name)); l.append(el("small",null,`  ${g.member_count} participante(s)${g.is_owner?" · criador":(g.is_admin?" · administrador":"")}`));
-        a.append(l, el("small",null,g.status==="drawn"?"Sorteado":"Aberto"));
+        a.append(l, el("small",null,groupState(g).short));
         box.append(a);
       });
     }catch(e){ $("myGroupsPanel").hidden=true; }
@@ -506,7 +525,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     if(!(max>=3 && max<=100)){ status("createStatus","O máximo de participantes vai de 3 a 100.","err"); return; }
     S.busy=true; $("createBtn").disabled=true; status("createStatus","Criando…");
     try{
-      const id=await rpc("create_group",{p_name:$("cName").value, p_event_date:$("cDate").value||null, p_budget:$("cBudget").value, p_place:$("cPlace").value, p_max:max, p_display_name:$("cMe").value});
+      const modeEl=document.querySelector('input[name="cMode"]:checked');
+      const id=await rpc("create_group",{p_name:$("cName").value, p_event_date:$("cDate").value||null, p_budget:$("cBudget").value, p_place:$("cPlace").value, p_max:max, p_display_name:$("cMe").value, p_mode:modeEl?modeEl.value:"draw"});
       history.pushState({}, "", `/amigo-secreto/g/${id}`); S.editing=true; await route();
       status("welcomeStatus","Grupo criado! Agora monte sua lista e mande o link para o grupo.","ok");
     }catch(err){ status("createStatus", errMsg(err), "err"); }
@@ -527,13 +547,14 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const g=data.group, me=data.me;
     document.title=g.name;
     $("gName").textContent=g.name;
-    $("gEyebrow").textContent = g.status==="drawn" ? "Sorteio realizado" : "Amigo secreto";
+    $("gEyebrow").textContent = isList(g) ? "Lista do amigo secreto" : (g.status==="drawn" ? "Sorteio realizado" : "Amigo secreto");
     // faixa
     const s=$("gStrip"); s.replaceChildren();
     [["Troca",fmtDate(g.event_date)],["Valor sugerido",g.budget],["Local",g.place],["Participantes",`${g.member_count} de ${g.max_participants}`]].forEach(([k,v])=>{
       const f=el("div","fact"+(v?"":" empty")); f.append(el("span","k",k), el("b",null,v||"a definir")); s.append(f);
     });
-    const chip=el("span","chip-status "+g.status, g.status==="drawn"?"Sorteado":"Aberto para entrar"); s.append(chip);
+    const st=groupState(g); s.append(el("span","chip-status "+st.cls, st.chip));
+    if(isList(g)) $("revealPanel").hidden=true;
 
     // compartilhar
     $("shareBox").hidden=!me;
@@ -549,7 +570,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $("joinForm").hidden=true; $("welcome").hidden=true; $("editor").hidden=true; status("meIntro","");
     if(!logged){
       $("meEyebrow").textContent="Participe"; $("meTitle").textContent="Entre para montar a sua lista";
-      status("meIntro", g.status==="drawn" ? "O sorteio já foi feito. Entre para ver quem você tirou." : "Você recebe um código no e-mail. Sem senha.");
+      status("meIntro", (!isList(g) && g.status==="drawn") ? "O sorteio já foi feito. Entre para ver quem você tirou." : "Você recebe um código no e-mail. Sem senha.");
       mountLogin(loginSlot, ()=>{}); return;
     }
     loginSlot.replaceChildren();
@@ -564,11 +585,11 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     const hasList=(me.items||[]).length>0;
     $("meEyebrow").textContent = d.is_owner ? "Criador do grupo" : (d.is_admin ? "Administrador" : "Bem-vindo(a)");
     $("meTitle").textContent = `Olá, ${fn}!`;
-    $("welcomeSub").textContent = g.status==="drawn"
+    $("welcomeSub").textContent = (!isList(g) && g.status==="drawn")
       ? "O sorteio já foi feito. Revele quem você tirou e confira a lista de desejos."
       : (hasList ? "Veja as listas dos seus amigos ou edite a sua lista de desejos." : "Monte a sua lista de desejos para quem te tirar saber o que dar.");
     $("welcome").hidden=false;
-    $("revealBtn").hidden = g.status!=="drawn";
+    $("revealBtn").hidden = isList(g) || g.status!=="drawn";
     $("shareMineBtn").hidden = !hasList;
     if(!hasList && S.editing===false && !S.touchedEdit) S.editing=true;
     if(!S.draft || !S.dirty){
@@ -698,9 +719,11 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $("adminPanel").hidden=!d.is_admin;
     if(!d.is_admin) return;
     $("admCount").textContent=g.member_count;
-    // sorteio
+    // sorteio (não existe em grupo "só lista")
+    $("drawSection").hidden=isList(g);
     const acts=$("drawActions"); acts.replaceChildren(); $("drawConfirm").hidden=true;
-    if(g.status==="open"){
+    if(isList(g)){ /* nada */ }
+    else if(g.status==="open"){
       $("drawInfo").textContent = g.member_count<3
         ? `Faltam ${3-g.member_count} participante(s) para poder sortear (mínimo 3).`
         : `${g.member_count} participantes. Depois do sorteio ninguém mais entra, e cada um recebe por e-mail quem tirou.`;
@@ -720,7 +743,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     // participantes
     const box=$("admMembers"); box.replaceChildren();
     const myId=d.me && d.me.member_id;
-    $("admHint").textContent = d.is_owner ? "Administradores podem sortear, editar o grupo e gerenciar participantes." : "";
+    $("admHint").textContent = d.is_owner ? (isList(g) ? "Administradores podem editar o grupo e gerenciar participantes." : "Administradores podem sortear, editar o grupo e gerenciar participantes.") : "";
     d.members.forEach(m=>{
       const row=el("div","member-row");
       const label=el("span");
@@ -747,7 +770,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     });
     // dados
     if(!$("groupForm").contains(document.activeElement)){
-      $("eName").value=g.name; $("eDate").value=g.event_date||""; $("eBudget").value=g.budget||""; $("ePlace").value=g.place||""; $("eMax").value=g.max_participants;
+      $("eName").value=g.name; $("eDate").value=g.event_date||""; $("eBudget").value=g.budget||""; $("ePlace").value=g.place||""; $("eMax").value=g.max_participants; $("eMode").value=isList(g)?"list":"draw";
     }
   }
   function askConfirm(text, action){
@@ -771,7 +794,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $("groupForm").addEventListener("submit", async e=>{
     e.preventDefault();
     try{
-      await rpc("update_group",{p_id:S.groupId,p_name:$("eName").value,p_event_date:$("eDate").value||null,p_budget:$("eBudget").value,p_place:$("ePlace").value,p_max:parseInt($("eMax").value,10)});
+      await rpc("update_group",{p_id:S.groupId,p_name:$("eName").value,p_event_date:$("eDate").value||null,p_budget:$("eBudget").value,p_place:$("ePlace").value,p_max:parseInt($("eMax").value,10),p_mode:$("eMode").value});
       status("groupStatus","Dados salvos.","ok"); await renderGroup();
     }catch(err){ status("groupStatus", errMsg(err), "err"); }
   });
