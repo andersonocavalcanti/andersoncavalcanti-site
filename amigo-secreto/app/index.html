@@ -470,6 +470,12 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
             <p class="status" id="groupStatus"></p>
           </form>
         </details>
+
+        <div id="deleteGroupBox" hidden style="display:grid;gap:8px;border-top:1px solid var(--line);padding-top:14px">
+          <h3>Excluir amigo secreto</h3>
+          <p class="status">Apaga o grupo para todos os participantes, junto com o sorteio. As listas salvas em "Minhas listas" não são apagadas.</p>
+          <div id="deleteGroupSlot"></div>
+        </div>
       </section>
 
       <!-- Listas -->
@@ -529,7 +535,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     GRUPO_SO_LISTA:"Este grupo é só de lista. Mude o tipo para \"Lista + sorteio\" para sortear.",
     DESFAZER_SORTEIO_ANTES:"Reabra o grupo (desfazendo o sorteio) antes de mudar para \"Só a lista\".",
     LIMITE_LISTAS:"Você já tem 10 listas. Exclua uma para criar outra.",
-    LISTA_NAO_ENCONTRADA:"Lista não encontrada. Atualize a página."
+    LISTA_NAO_ENCONTRADA:"Lista não encontrada. Atualize a página.",
+    SOMENTE_CRIADOR_EXCLUI:"Só quem criou o grupo pode excluí-lo."
   };
   const isList=g=>g && g.mode==="list";
   const groupState=g=>isList(g)?{cls:"list",chip:"Só lista",short:"Só lista"}:(g.status==="drawn"?{cls:"drawn",chip:"Sorteado",short:"Sorteado"}:{cls:"open",chip:"Aberto para entrar",short:"Aberto"});
@@ -654,6 +661,36 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     sw.append(document.createTextNode(signup?"Já tem conta? ":"Ainda não tem conta? "), a);
   }
 
+  /* ---------- excluir grupo / sair do grupo (confirmação em 2 passos) ---------- */
+  function mountDangerAction(slot, opts){
+    slot.replaceChildren();
+    const btn=el("button","btn ghost danger",opts.label); btn.type="button";
+    const box=el("div","confirm"); box.hidden=true; box.style.display="grid"; box.style.gap="8px";
+    const st=el("p","status");
+    if(opts.typed){
+      box.append(el("span",null,`Para confirmar, digite EXCLUIR. Isso não pode ser desfeito.`));
+      const inp=el("input"); inp.placeholder="EXCLUIR"; inp.autocomplete="off"; inp.setAttribute("aria-label","Digite EXCLUIR para confirmar");
+      const row=el("div","inline");
+      const yes=el("button","btn danger",opts.yesLabel); yes.type="button"; yes.disabled=true;
+      const no=el("button","btn ghost","Cancelar"); no.type="button";
+      inp.oninput=()=>{ yes.disabled=inp.value.trim().toUpperCase()!=="EXCLUIR"; };
+      row.append(yes,no); box.append(inp,row);
+      no.onclick=()=>{ box.hidden=true; inp.value=""; yes.disabled=true; };
+      yes.onclick=async()=>{ yes.disabled=true; status(st,"Excluindo…"); try{ await opts.run(); }catch(e){ status(st,errMsg(e),"err"); yes.disabled=false; } };
+      btn.onclick=()=>{ box.hidden=false; inp.focus(); };
+    } else {
+      box.append(el("span",null,opts.question));
+      const row=el("div","inline");
+      const yes=el("button","btn danger",opts.yesLabel); yes.type="button";
+      const no=el("button","btn ghost","Cancelar"); no.type="button";
+      row.append(yes,no); box.append(row);
+      no.onclick=()=>{ box.hidden=true; };
+      yes.onclick=async()=>{ yes.disabled=true; try{ await opts.run(); }catch(e){ status(st,errMsg(e),"err"); yes.disabled=false; } };
+      btn.onclick=()=>{ box.hidden=false; };
+    }
+    slot.append(btn,box,st);
+  }
+
   /* ================= TELA: MEUS AMIGOS SECRETOS ================= */
   async function renderHome(){
     showView("viewHome"); document.title="Meus amigos secretos";
@@ -674,7 +711,15 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       a.append(el("span","sub",facts.join(" · ")));
       a.append(el("span","sub", g.wishlist_title ? `Sua lista: ${g.wishlist_title}` : (g.has_list ? "Sua lista: só deste grupo" : "Você ainda não montou sua lista")));
       card.append(a);
-      if(!isList(g) && g.status==="drawn"){ const r=el("a","btn accent","Ver meu amigo secreto"); r.href=`/amigo-secreto/g/${g.id}`; r.dataset.nav=""; const act=el("div","actions"); act.append(r); card.append(act); }
+      const act=el("div","actions");
+      if(!isList(g) && g.status==="drawn"){ const r=el("a","btn accent","Ver meu amigo secreto"); r.href=`/amigo-secreto/g/${g.id}`; r.dataset.nav=""; act.append(r); }
+      if(act.children.length) card.append(act);
+      const danger=el("div");
+      if(g.is_owner) mountDangerAction(danger,{label:"Excluir", typed:true, yesLabel:"Excluir de vez",
+        run:async()=>{ await rpc("delete_group",{p_id:g.id}); await renderHome(); status("homeStatus",`"${g.name}" foi excluído.`,"ok"); }});
+      else if(g.status==="open") mountDangerAction(danger,{label:"Sair do grupo", question:`Sair de "${g.name}"? Suas listas salvas continuam em "Minhas listas".`, yesLabel:"Sair",
+        run:async()=>{ await rpc("leave_group",{p_id:g.id}); await renderHome(); status("homeStatus",`Você saiu de "${g.name}".`,"ok"); }});
+      if(danger.children.length) card.append(danger);
       box.append(card);
     });
   }
@@ -1034,6 +1079,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $("admCount").textContent=g.member_count;
     // sorteio (não existe em grupo "só lista")
     $("drawSection").hidden=isList(g);
+    $("deleteGroupBox").hidden=!d.is_owner;
+    if(d.is_owner) mountDangerAction($("deleteGroupSlot"),{label:"Excluir este amigo secreto", typed:true, yesLabel:"Excluir de vez",
+      run:async()=>{ await rpc("delete_group",{p_id:S.groupId}); S.dirty=false; go("/amigo-secreto/painel"); setTimeout(()=>status("homeStatus",`"${g.name}" foi excluído.`,"ok"),300); }});
     const acts=$("drawActions"); acts.replaceChildren(); $("drawConfirm").hidden=true;
     if(isList(g)){ /* nada */ }
     else if(g.status==="open"){
