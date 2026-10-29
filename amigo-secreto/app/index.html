@@ -299,7 +299,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
         <div id="welcome" hidden style="display:grid;gap:14px">
           <p class="lede" id="welcomeSub"></p>
           <div class="inline">
-            <button class="btn accent" type="button" id="revealBtn" hidden>Revelar meu amigo secreto</button>
+            <button class="btn accent" type="button" id="revealBtn" hidden>Ver meu amigo secreto</button>
             <button class="btn primary" type="button" id="goListsBtn">Ver listas</button>
             <button class="btn" type="button" id="shareMineBtn">Compartilhar minha lista</button>
             <button class="btn" type="button" id="toggleEditBtn" aria-controls="editor" aria-expanded="false">Editar minha lista</button>
@@ -338,10 +338,19 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
       <!-- Revelação -->
       <section class="panel reveal" id="revealPanel" hidden aria-live="polite">
         <div class="gift" id="giftAnim" aria-hidden="true"><div class="box"></div><div class="lid"></div><div class="rib"></div></div>
-        <p class="eyebrow">Seu amigo secreto é</p>
-        <p class="reveal-name" id="revealName"></p>
-        <p class="status">Também enviamos por e-mail. Guarde segredo!</p>
-        <div class="reveal-list" id="revealList"></div>
+        <!-- fechado: o nome NÃO está na página até a pessoa clicar -->
+        <div id="revealClosed" style="display:grid;gap:12px;justify-items:center">
+          <p class="eyebrow">Seu amigo secreto está aqui dentro</p>
+          <p class="status">Confira se ninguém está olhando a sua tela.</p>
+          <button class="btn accent" type="button" id="openGiftBtn">Abrir o presente</button>
+        </div>
+        <div id="revealOpen" hidden style="display:grid;gap:12px;justify-items:center;width:100%">
+          <p class="eyebrow">Seu amigo secreto é</p>
+          <p class="reveal-name" id="revealName"></p>
+          <p class="status">Guarde segredo!</p>
+          <div class="reveal-list" id="revealList"></div>
+          <button class="btn ghost" type="button" id="hideGiftBtn">Esconder</button>
+        </div>
       </section>
 
       <!-- Painel do organizador -->
@@ -571,7 +580,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const f=el("div","fact"+(v?"":" empty")); f.append(el("span","k",k), el("b",null,v||"a definir")); s.append(f);
     });
     const st=groupState(g); s.append(el("span","chip-status "+st.cls, st.chip));
-    if(isList(g)) $("revealPanel").hidden=true;
+    // presente sempre começa fechado, sem o nome na página
+    closeGift();
+    $("revealPanel").hidden = isList(g) || g.status!=="drawn" || !me;
 
     // compartilhar
     $("shareBox").hidden=!me;
@@ -724,22 +735,37 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   };
 
   /* ---------- revelação ---------- */
-  $("revealBtn").onclick=async()=>{
-    if(S.busy) return; S.busy=true;
+  // fechado = nome apagado da página (não fica nem escondido no HTML)
+  function closeGift(){
+    $("giftAnim").className="gift";
+    $("revealName").textContent=""; $("revealList").replaceChildren();
+    $("revealOpen").hidden=true; $("revealClosed").hidden=false;
+  }
+  // botão do topo só leva até o presente fechado; quem abre é a pessoa
+  $("revealBtn").onclick=()=>{
+    const p=$("revealPanel"); p.hidden=false; p.scrollIntoView({behavior:"smooth",block:"center"});
+    $("openGiftBtn").focus({preventScroll:true});
+  };
+  $("openGiftBtn").onclick=async()=>{
+    if(S.busy) return; S.busy=true; $("openGiftBtn").disabled=true;
     try{
       const r=await rpc("my_assignment",{p_id:S.groupId});
       if(!r){ status("welcomeStatus","O sorteio ainda não foi feito.","warn"); return; }
-      const p=$("revealPanel"); p.hidden=false; p.scrollIntoView({behavior:"smooth",block:"center"});
-      const gift=$("giftAnim"); gift.className="gift shake"; $("revealName").textContent=""; $("revealList").replaceChildren();
+      const gift=$("giftAnim"); gift.className="gift shake";
       const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       setTimeout(()=>{
         gift.className="gift open";
+        $("revealClosed").hidden=true; $("revealOpen").hidden=false;
         $("revealName").textContent=r.name;
-        $("revealList").append(personDetails({name:r.name, shirt:r.shirt, shoe:r.shoe, avoid:r.avoid, items:r.items}));
+        $("revealList").replaceChildren(personDetails({name:r.name, shirt:r.shirt, shoe:r.shoe, avoid:r.avoid, items:r.items}));
+        $("hideGiftBtn").focus({preventScroll:true});
       }, reduce?0:1100);
     }catch(err){ status("welcomeStatus", errMsg(err), "err"); }
-    finally{ S.busy=false; }
+    finally{ S.busy=false; $("openGiftBtn").disabled=false; }
   };
+  $("hideGiftBtn").onclick=()=>{ closeGift(); $("openGiftBtn").focus({preventScroll:true}); };
+  // saiu da aba (trocou de app, bloqueou a tela): fecha o presente sozinho
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden && !$("revealOpen").hidden) closeGift(); });
 
   /* ---------- painel do organizador ---------- */
   function renderAdmin(){
