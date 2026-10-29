@@ -175,6 +175,21 @@ input:focus,select:focus{border-color:var(--pine);outline:none;box-shadow:0 0 0 
 .mygroups small{color:var(--muted)}
 footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px}
 
+/* Conta, painel e listas */
+.auth{max-width:520px;width:100%;justify-self:center}
+.navuser .btn.current{color:var(--ink);background:var(--sunk)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.card h3{overflow-wrap:anywhere}
+.card a.cover{text-decoration:none;color:inherit;display:grid;gap:8px}
+.card a.cover:hover h3{color:var(--pine)}
+.card .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.card .sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.card .actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.listpick{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.listpick label{flex:1 1 240px;max-width:360px}
+@media (max-width:560px){ .navuser .btn{padding:6px 8px;font-size:.88rem} }
+
 @media (max-width:760px){
   .grid-3,.grid-2{grid-template-columns:1fr 1fr}
   .grid-3 .name{grid-column:1/-1}
@@ -194,8 +209,16 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
 <div class="wrap">
 
   <div class="topbar">
-    <a class="brand" href="/amigo-secreto/novo"><i aria-hidden="true"></i>Amigo Secreto</a>
-    <button class="btn ghost" type="button" id="logoutBtn" hidden>Sair</button>
+    <a class="brand" href="/amigo-secreto"><i aria-hidden="true"></i>Amigo Secreto</a>
+    <nav class="inline" id="navGuest" aria-label="Conta" hidden>
+      <a class="btn ghost" href="/amigo-secreto/entrar" data-nav>Entrar</a>
+      <a class="btn primary" href="/amigo-secreto/cadastro" data-nav>Criar conta</a>
+    </nav>
+    <nav class="inline navuser" id="navUser" aria-label="Menu" hidden>
+      <a class="btn ghost" href="/amigo-secreto/painel" data-nav data-route="home">Meus amigos secretos</a>
+      <a class="btn ghost" href="/amigo-secreto/listas" data-nav data-route="lists">Minhas listas</a>
+      <button class="btn ghost" type="button" id="logoutBtn">Sair</button>
+    </nav>
   </div>
 
   <p class="notice status warn" id="setupNotice" hidden>Falta configurar o Supabase neste arquivo (SUPABASE_URL e SUPABASE_ANON_KEY).</p>
@@ -204,6 +227,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
   <template id="tplLogin">
     <div class="login" data-login>
       <form data-step="email" class="login">
+        <label data-namefield hidden>Seu nome<input name="name" autocomplete="name" maxlength="60" placeholder="ex.: Ana Paula"></label>
         <label>Seu e-mail<input name="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com"></label>
         <div class="inline"><button class="btn primary" type="submit">Receber acesso por e-mail</button></div>
         <p class="status" data-status></p>
@@ -220,48 +244,93 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
     </div>
   </template>
 
+  <!-- ===================== Tela: entrar / criar conta ===================== -->
+  <main id="viewAuth" hidden>
+    <section class="panel auth" aria-labelledby="authTitle">
+      <div style="display:grid;gap:6px">
+        <p class="eyebrow">Sem senha</p>
+        <h1 id="authTitle" style="font-size:clamp(1.8rem,5vw,2.4rem)">Entrar</h1>
+        <p class="lede" id="authLede">Digite seu e-mail. Você recebe um link e um código para entrar.</p>
+      </div>
+      <div id="authSlot"></div>
+      <p class="status" id="authSwitch"></p>
+    </section>
+  </main>
+
+  <!-- ===================== Tela: meus amigos secretos ===================== -->
+  <main id="viewHome" hidden>
+    <div style="display:grid;gap:26px">
+      <section class="hero">
+        <p class="eyebrow">Meus amigos secretos</p>
+        <h1 id="homeHello">Olá!</h1>
+        <p class="lede">Todos os grupos de que você participa ficam aqui. Você pode usar a mesma lista de desejos em vários deles.</p>
+        <div class="inline"><a class="btn accent" href="/amigo-secreto/novo" data-nav>+ Criar amigo secreto</a>
+          <a class="btn" href="/amigo-secreto/listas" data-nav>Minhas listas</a></div>
+      </section>
+      <section class="cards" id="homeGroups" aria-label="Seus grupos"></section>
+      <div class="empty-state" id="homeEmpty" hidden>
+        <h3>Você ainda não está em nenhum grupo</h3>
+        <p>Crie um amigo secreto ou abra o link que alguém te mandou.</p>
+        <a class="btn primary" href="/amigo-secreto/novo" data-nav>Criar amigo secreto</a>
+      </div>
+      <p class="status" id="homeStatus"></p>
+    </div>
+  </main>
+
+  <!-- ===================== Tela: minhas listas ===================== -->
+  <main id="viewLists" hidden>
+    <div style="display:grid;gap:26px">
+      <section class="hero">
+        <p class="eyebrow">Minhas listas</p>
+        <h1>Listas de desejos</h1>
+        <p class="lede">Monte uma vez e use em quantos amigos secretos quiser. Ao editar uma lista, ela muda em todos os grupos em que está sendo usada.</p>
+        <div class="inline"><button class="btn accent" type="button" id="newListBtn">+ Nova lista</button></div>
+      </section>
+      <section class="panel" id="listEditorPanel" hidden aria-labelledby="listEditorTitle">
+        <div class="panel-head"><div><p class="eyebrow" id="listEditorEyebrow">Nova lista</p><h2 id="listEditorTitle">Monte a sua lista</h2></div>
+          <button class="btn ghost" type="button" id="closeListEditor">Fechar</button></div>
+        <p class="status" id="listEditorNote"></p>
+        <div id="listEditorSlot"></div>
+      </section>
+      <section class="cards" id="listCards" aria-label="Suas listas"></section>
+      <div class="empty-state" id="listsEmpty" hidden>
+        <h3>Nenhuma lista salva ainda</h3>
+        <p>Crie uma lista (por exemplo "Família" ou "Trabalho") e escolha qual usar em cada amigo secreto.</p>
+      </div>
+      <p class="status" id="listsStatus"></p>
+    </div>
+  </main>
+
   <!-- ===================== Tela: criar grupo ===================== -->
   <main id="viewNew" hidden>
     <div style="display:grid;gap:26px">
       <section class="hero">
-        <p class="eyebrow">Grátis · sem senha · com ou sem sorteio</p>
+        <p class="eyebrow">Novo amigo secreto</p>
         <h1>Crie o seu <span>amigo secreto</span></h1>
-        <p class="lede">Monte o grupo, mande o link no WhatsApp e cada pessoa cadastra a lista de desejos dela. Já fizeram o sorteio de outro jeito? Use só a lista. Quer sortear aqui? Cada um descobre quem tirou na tela e recebe por e-mail.</p>
-        <div class="steps">
-          <div class="step"><b>1. Crie o grupo</b><small>Escolha: só a lista ou lista com sorteio.</small></div>
-          <div class="step"><b>2. Compartilhe o link</b><small>Cada um entra com o e-mail e monta a lista.</small></div>
-          <div class="step"><b>3. Sorteie (opcional)</b><small>Ninguém tira a si mesmo, nem o organizador vê o resultado.</small></div>
-        </div>
+        <p class="lede">Monte o grupo, mande o link no WhatsApp e cada pessoa cadastra a lista de desejos dela.</p>
       </section>
-
       <section class="panel" aria-labelledby="newTitle">
-        <div class="panel-head"><div><p class="eyebrow">Novo grupo</p><h2 id="newTitle">Entre para criar o seu grupo</h2></div></div>
-        <fieldset class="modes" style="margin-bottom:18px">
-          <legend>1. Como vai ser o seu grupo?</legend>
-          <label class="mode"><input type="radio" name="cMode" value="draw" checked><b>Lista + sorteio</b><small>Cada um monta a lista e o sorteio é feito aqui, com resultado na tela e por e-mail.</small></label>
-          <label class="mode"><input type="radio" name="cMode" value="list"><b>Só a lista</b><small>O sorteio já foi feito (papel, outro app). Aqui fica só a lista de desejos de cada um.</small></label>
-        </fieldset>
-        <p class="eyebrow" id="newStep2" style="margin:0 0 10px">2. Entre com seu e-mail</p>
-        <div id="newLoginSlot"></div>
-        <form id="createForm" hidden>
-          <div style="display:grid;gap:14px">
+        <form id="createForm">
+          <div style="display:grid;gap:18px">
+            <fieldset class="modes">
+              <legend>Como vai ser o seu grupo?</legend>
+              <label class="mode"><input type="radio" name="cMode" value="draw" checked><b>Lista + sorteio</b><small>Cada um monta a lista e o sorteio é feito aqui, com resultado na tela e por e-mail.</small></label>
+              <label class="mode"><input type="radio" name="cMode" value="list"><b>Só a lista</b><small>O sorteio já foi feito (papel, outro app). Aqui fica só a lista de desejos de cada um.</small></label>
+            </fieldset>
+            <h2 id="newTitle">Dados do grupo</h2>
             <div class="grid-2">
               <label class="full">Nome do grupo<input id="cName" maxlength="80" required placeholder="ex.: Amigo Secreto da Família 2026"></label>
               <label>Data da troca<input id="cDate" type="date"></label>
               <label>Valor sugerido<input id="cBudget" maxlength="40" placeholder="ex.: R$ 100 a R$ 150"></label>
               <label>Local<input id="cPlace" maxlength="80" placeholder="ex.: casa da vó"></label>
               <label>Máximo de participantes<input id="cMax" type="number" min="3" max="100" value="20" required></label>
-              <label class="full">Seu nome (você também participa)<input id="cMe" maxlength="60" required placeholder="ex.: Anderson"></label>
+              <label>Seu nome (você também participa)<input id="cMe" maxlength="60" required placeholder="ex.: Anderson"></label>
+              <label id="cListWrap" hidden>Sua lista neste grupo<select id="cList"></select></label>
             </div>
             <div class="inline"><button class="btn primary" type="submit" id="createBtn">Criar grupo</button></div>
             <p class="status" id="createStatus"></p>
           </div>
         </form>
-      </section>
-
-      <section class="panel mygroups" id="myGroupsPanel" hidden aria-labelledby="mgTitle">
-        <h2 id="mgTitle">Seus grupos</h2>
-        <div id="myGroups"></div>
       </section>
     </div>
   </main>
@@ -292,6 +361,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
 
         <form id="joinForm" class="login" hidden>
           <label>Seu nome (como o grupo te conhece)<input id="jName" maxlength="60" required placeholder="ex.: Ana Paula"></label>
+          <label id="jListWrap" hidden>Lista de desejos<select id="jList"></select></label>
           <div class="inline"><button class="btn primary" type="submit" id="joinBtn">Entrar no grupo</button></div>
           <p class="status" id="joinStatus"></p>
         </form>
@@ -304,20 +374,30 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
             <button class="btn" type="button" id="shareMineBtn">Compartilhar minha lista</button>
             <button class="btn" type="button" id="toggleEditBtn" aria-controls="editor" aria-expanded="false">Editar minha lista</button>
           </div>
+          <div class="listpick" id="listPick" hidden>
+            <label>Lista usada neste grupo<select id="gListSel"></select></label>
+            <button class="btn ghost" type="button" id="saveAsListBtn" hidden>Salvar como lista reutilizável</button>
+          </div>
           <p class="status" id="welcomeStatus"></p>
         </div>
 
+        <div id="groupEditorSlot"></div>
+      </section>
+
+      <!-- Editor de lista (é movido entre a página do grupo e "Minhas listas") -->
+      <section hidden id="editorHome">
         <form id="editor" hidden>
           <div style="display:grid;gap:18px">
             <div class="legend" aria-label="Legenda de prioridade">
               <span><i class="prio alta"></i>Quero muito</span><span><i class="prio media"></i>Gostaria</span><span><i class="prio baixa"></i>Se der</span>
             </div>
             <div class="grid-3">
-              <label class="name">Seu nome<input id="fName" maxlength="60" required></label>
+              <label class="name"><span id="fNameLbl">Seu nome</span><input id="fName" maxlength="60" required></label>
               <label>Camiseta<input id="fShirt" maxlength="10" placeholder="P, M, G…"></label>
               <label>Calçado<input id="fShoe" maxlength="10" placeholder="ex.: 39"></label>
               <label class="full">Prefiro não ganhar (opcional)<input id="fAvoid" maxlength="200" placeholder="ex.: perfume, canecas"></label>
             </div>
+            <p class="status warn" id="syncNote" hidden></p>
             <div class="items" id="items"></div>
             <div><button class="btn" type="button" id="addItem">+ Adicionar sugestão</button></div>
             <div class="foot">
@@ -327,7 +407,7 @@ footer{color:var(--muted);font-size:.8rem;text-align:center;display:grid;gap:4px
                 <button class="btn primary" type="submit" id="saveBtn">Salvar minha lista</button>
               </div>
             </div>
-            <div class="confirm" id="leaveConfirm" hidden>Sair do grupo e apagar sua lista?
+            <div class="confirm" id="leaveConfirm" hidden>Sair deste grupo? Suas listas salvas continuam em "Minhas listas".
               <button class="btn danger" type="button" id="leaveYes">Sair</button>
               <button class="btn ghost" type="button" id="leaveNo">Cancelar</button>
             </div>
@@ -447,11 +527,14 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     LIMITE_GRUPOS_DIA:"Você criou muitos grupos hoje. Tente amanhã.",
     LIMITE_MENOR_QUE_PARTICIPANTES:"O limite não pode ser menor que o número de participantes.",
     GRUPO_SO_LISTA:"Este grupo é só de lista. Mude o tipo para \"Lista + sorteio\" para sortear.",
-    DESFAZER_SORTEIO_ANTES:"Reabra o grupo (desfazendo o sorteio) antes de mudar para \"Só a lista\"."
+    DESFAZER_SORTEIO_ANTES:"Reabra o grupo (desfazendo o sorteio) antes de mudar para \"Só a lista\".",
+    LIMITE_LISTAS:"Você já tem 10 listas. Exclua uma para criar outra.",
+    LISTA_NAO_ENCONTRADA:"Lista não encontrada. Atualize a página."
   };
   const isList=g=>g && g.mode==="list";
   const groupState=g=>isList(g)?{cls:"list",chip:"Só lista",short:"Só lista"}:(g.status==="drawn"?{cls:"drawn",chip:"Sorteado",short:"Sorteado"}:{cls:"open",chip:"Aberto para entrar",short:"Aberto"});
-  const S = {sb:null, session:null, route:null, groupId:null, data:null, draft:null, dirty:false, editing:false, busy:false, open:new Set(), confirmAction:null};
+  const S = {sb:null, session:null, route:null, groupId:null, data:null, draft:null, dirty:false, editing:false, busy:false, open:new Set(), confirmAction:null,
+             wishlists:null, editTarget:{kind:"group"}, afterLogin:null};
 
   /* ---------- utilidades ---------- */
   const el=(t,c,x)=>{const n=document.createElement(t); if(c) n.className=c; if(x!=null) n.textContent=x; return n;};
@@ -470,23 +553,30 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   const firstName=n=>String(n||"").trim().split(/\s+/)[0]||"";
   const errMsg=e=>{const m=String((e&&e.message)||e||""); const k=Object.keys(ERR).find(k=>m.includes(k)); return k?ERR[k]:(/fetch|network/i.test(m)?"Sem conexão. Tente de novo.":"Algo deu errado. Tente de novo.");};
   const groupLink=id=>`${location.origin}/amigo-secreto/g/${id}`;
+  const userName=()=>{ const m=S.session&&S.session.user&&S.session.user.user_metadata; let n=(m&&m.name)||""; if(!n){ try{ n=localStorage.getItem("as2_name")||""; }catch(e){} } return n; };
 
   async function rpc(fn,args){ const {data,error}=await S.sb.rpc(fn,args||{}); if(error) throw new Error(error.message); return data; }
 
   /* ---------- login por código (componente) ---------- */
-  function mountLogin(slot, onDone){
+  function mountLogin(slot, onDone, opts){
+    opts=opts||{};
     slot.replaceChildren($("tplLogin").content.cloneNode(true));
     const root=slot.querySelector("[data-login]");
     const fEmail=root.querySelector('[data-step="email"]'), fCode=root.querySelector('[data-step="code"]');
-    let email="";
+    const nameField=root.querySelector("[data-namefield]");
+    if(opts.signup){ nameField.hidden=false; fEmail.name.required=true; try{ fEmail.name.value=localStorage.getItem("as2_name")||""; }catch(e){} }
+    if(opts.cta) fEmail.querySelector('button[type="submit"]').textContent=opts.cta;
+    let email="", name="";
     try{ fEmail.email.value=localStorage.getItem("as2_email")||""; }catch(e){}
     fEmail.addEventListener("submit", async e=>{
       e.preventDefault(); if(S.busy) return;
       email=fEmail.email.value.trim().toLowerCase();
+      name=opts.signup ? fEmail.name.value.trim() : "";
       const st=fEmail.querySelector("[data-status]");
+      if(opts.signup && !name){ status(st,"Coloque seu nome.","err"); fEmail.name.focus(); return; }
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ status(st,"Digite um e-mail válido.","err"); return; }
       S.busy=true; status(st,"Enviando código…");
-      const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true, emailRedirectTo: location.origin + location.pathname}});
+      const {error}=await S.sb.auth.signInWithOtp({email, options:{shouldCreateUser:true, emailRedirectTo: location.origin + location.pathname + location.search, data: name?{name}:undefined}});
       S.busy=false;
       if(error){
         const m=String(error.message||"");
@@ -496,7 +586,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
           : "Não foi possível enviar o e-mail. Tente de novo.";
         status(st, msg, "err"); return;
       }
-      try{ localStorage.setItem("as2_email",email); }catch(e){}
+      try{ localStorage.setItem("as2_email",email); if(name) localStorage.setItem("as2_name",name); }catch(e){}
       root.querySelector("[data-email]").textContent=email;
       fEmail.hidden=true; fCode.hidden=false; fCode.code.value=""; fCode.code.focus();
     });
@@ -508,6 +598,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       const {error}=await S.sb.auth.verifyOtp({email, token:fCode.code.value, type:"email"});
       S.busy=false;
       if(error){ status(st,"Código incorreto ou expirado. Confira o e-mail ou peça outro.","err"); fCode.code.select(); return; }
+      if(name){ S.sb.auth.updateUser({data:{name}}).catch(()=>{}); }
       onDone && onDone();
     });
     root.querySelector("[data-back]").onclick=()=>{ fCode.hidden=true; fEmail.hidden=false; fEmail.email.focus(); };
@@ -515,35 +606,132 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   /* ---------- roteamento ---------- */
   function parseRoute(){
-    const m=location.pathname.match(/\/amigo-secreto\/g\/([a-z0-9]{6,12})\/?$/i);
+    const path=location.pathname.replace(/\/+$/,"");
+    const m=path.match(/\/amigo-secreto\/g\/([a-z0-9]{6,12})$/i);
     if(m) return {name:"group", id:m[1].toLowerCase()};
-    return {name:"new"};
+    const page=(path.match(/\/amigo-secreto\/([a-z]+)$/)||[])[1];
+    return {name:({entrar:"login",cadastro:"signup",painel:"home",listas:"lists",novo:"new"})[page]||"home"};
   }
-  function showView(v){ ["viewNew","viewGroup","viewNotFound"].forEach(x=>$(x).hidden=(x!==v)); }
+  const VIEWS=["viewAuth","viewHome","viewLists","viewNew","viewGroup","viewNotFound"];
+  function showView(v){ VIEWS.forEach(x=>$(x).hidden=(x!==v)); window.scrollTo(0,0); }
+  function go(path){ if(location.pathname+location.search!==path) history.pushState({}, "", path); route(); }
+  document.addEventListener("click",e=>{
+    const a=e.target.closest && e.target.closest("a[data-nav]");
+    if(!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button!==0) return;
+    if(S.dirty && !confirm("Você tem alterações não salvas na lista. Sair mesmo assim?")) { e.preventDefault(); return; }
+    e.preventDefault(); S.dirty=false; go(a.getAttribute("href"));
+  });
+  const nextParam=()=>{ const n=new URLSearchParams(location.search).get("next")||""; return /^\/amigo-secreto\//.test(n)?n:"/amigo-secreto/painel"; };
+
+  /* ================= LISTAS SALVAS (cache) ================= */
+  async function loadWishlists(force){
+    if(!S.session){ S.wishlists=[]; return S.wishlists; }
+    if(S.wishlists && !force) return S.wishlists;
+    try{ S.wishlists=await rpc("my_wishlists")||[]; }catch(e){ S.wishlists=S.wishlists||[]; }
+    return S.wishlists;
+  }
+  function fillListSelect(sel, opts){
+    sel.replaceChildren();
+    const first=el("option",null,opts.firstLabel); first.value=""; sel.append(first);
+    (S.wishlists||[]).forEach(w=>{ const n=(w.items||[]).length; const o=el("option",null,`${w.title} (${n} ${n===1?"sugestão":"sugestões"})`); o.value=w.id; sel.append(o); });
+    sel.value=opts.value||"";
+  }
+
+  /* ================= TELA: ENTRAR / CRIAR CONTA ================= */
+  function renderAuth(kind){
+    if(S.session){ go(nextParam()); return; }
+    showView("viewAuth");
+    const signup=kind==="signup";
+    document.title=signup?"Criar conta · Amigo Secreto":"Entrar · Amigo Secreto";
+    $("authTitle").textContent=signup?"Criar conta":"Entrar";
+    $("authLede").textContent=signup
+      ? "Sem senha: coloque seu nome e e-mail e confirme com o link ou o código que enviamos."
+      : "Digite seu e-mail. Você recebe um link e um código para entrar.";
+    mountLogin($("authSlot"), ()=>{ /* onAuthStateChange leva para o destino */ }, {signup, cta: signup?"Criar conta":"Receber acesso por e-mail"});
+    const sw=$("authSwitch"); sw.replaceChildren();
+    const q=location.search;
+    const a=el("a",null,signup?"Entrar":"Criar conta"); a.href=(signup?"/amigo-secreto/entrar":"/amigo-secreto/cadastro")+q; a.dataset.nav="";
+    sw.append(document.createTextNode(signup?"Já tem conta? ":"Ainda não tem conta? "), a);
+  }
+
+  /* ================= TELA: MEUS AMIGOS SECRETOS ================= */
+  async function renderHome(){
+    showView("viewHome"); document.title="Meus amigos secretos";
+    const n=firstName(userName()); $("homeHello").textContent = n ? `Olá, ${n}!` : "Olá!";
+    const box=$("homeGroups"); box.replaceChildren(); $("homeEmpty").hidden=true; status("homeStatus","Carregando…");
+    let groups=[];
+    try{ groups=await rpc("my_groups")||[]; status("homeStatus",""); }catch(e){ status("homeStatus",errMsg(e),"err"); return; }
+    $("homeEmpty").hidden=groups.length>0;
+    groups.forEach(g=>{
+      const st=groupState(g);
+      const card=el("article","card");
+      const a=el("a","cover"); a.href=`/amigo-secreto/g/${g.id}`; a.dataset.nav="";
+      const meta=el("div","meta");
+      meta.append(el("span","chip-status "+st.cls, isList(g)?"Só lista":(g.status==="drawn"?"Sorteado":"Lista + sorteio · aberto")));
+      if(g.is_owner) meta.append(el("span","chip","criador")); else if(g.is_admin) meta.append(el("span","chip","admin"));
+      a.append(meta, el("h3",null,g.name));
+      const facts=[`${g.member_count} ${g.member_count===1?"participante":"participantes"}`]; if(g.event_date) facts.push("troca em "+fmtDate(g.event_date));
+      a.append(el("span","sub",facts.join(" · ")));
+      a.append(el("span","sub", g.wishlist_title ? `Sua lista: ${g.wishlist_title}` : (g.has_list ? "Sua lista: só deste grupo" : "Você ainda não montou sua lista")));
+      card.append(a);
+      if(!isList(g) && g.status==="drawn"){ const r=el("a","btn accent","Ver meu amigo secreto"); r.href=`/amigo-secreto/g/${g.id}`; r.dataset.nav=""; const act=el("div","actions"); act.append(r); card.append(act); }
+      box.append(card);
+    });
+  }
+
+  /* ================= TELA: MINHAS LISTAS ================= */
+  async function renderLists(){
+    showView("viewLists"); document.title="Minhas listas";
+    status("listsStatus","Carregando…");
+    await loadWishlists(true); status("listsStatus","");
+    const lists=S.wishlists||[];
+    $("listsEmpty").hidden=lists.length>0 || !$("listEditorPanel").hidden;
+    $("newListBtn").disabled=lists.length>=10;
+    const box=$("listCards"); box.replaceChildren();
+    lists.forEach(w=>{
+      const n=(w.items||[]).length;
+      const card=el("article","card");
+      card.append(el("h3",null,w.title));
+      card.append(el("span","sub",`${n} ${n===1?"sugestão":"sugestões"} · ${fmtWhen(w.updated_at)}`));
+      const used=w.groups||[];
+      card.append(el("span","sub", used.length ? "Usada em: "+used.map(g=>g.name).join(", ") : "Ainda não está em nenhum grupo"));
+      const act=el("div","actions");
+      const ed=el("button","btn","Editar"); ed.type="button"; ed.onclick=()=>openListEditor(w);
+      const del=el("button","btn ghost danger","Excluir"); del.type="button";
+      const conf=el("div","confirm"); conf.hidden=true;
+      conf.append(document.createTextNode(used.length?`Excluir "${w.title}"? Os ${used.length} grupo(s) ficam com uma cópia da lista.`:`Excluir "${w.title}"?`));
+      const yes=el("button","btn danger","Excluir"); yes.type="button"; const no=el("button","btn ghost","Cancelar"); no.type="button";
+      conf.append(yes,no); no.onclick=()=>{conf.hidden=true;}; del.onclick=()=>{conf.hidden=false;};
+      yes.onclick=async()=>{ try{ await rpc("delete_wishlist",{p_id:w.id}); if(S.editTarget.kind==="list"&&S.editTarget.id===w.id) closeListEditor(); await renderLists(); status("listsStatus","Lista excluída.","ok"); }catch(e){ status("listsStatus",errMsg(e),"err"); } };
+      act.append(ed,del); card.append(act,conf); box.append(card);
+    });
+  }
+  function openListEditor(w){
+    if(S.dirty && !confirm("Você tem alterações não salvas. Descartar?")) return;
+    S.editTarget={kind:"list", id:w?w.id:null};
+    S.draft={name:w?w.title:"", shirt:w&&w.shirt||"", shoe:w&&w.shoe||"", avoid:w&&w.avoid||"",
+             items:(w&&w.items&&w.items.length)?JSON.parse(JSON.stringify(w.items)):[blankItem()]};
+    S.dirty=false;
+    $("listEditorEyebrow").textContent=w?"Editando lista":"Nova lista";
+    $("listEditorTitle").textContent=w?w.title:"Monte a sua lista";
+    const used=(w&&w.groups)||[];
+    status("listEditorNote", used.length?`As mudanças aparecem em: ${used.map(g=>g.name).join(", ")}.`:"");
+    mountEditor($("listEditorSlot"));
+    $("listEditorPanel").hidden=false; $("listsEmpty").hidden=true;
+    $("listEditorPanel").scrollIntoView({behavior:"smooth",block:"start"}); $("fName").focus({preventScroll:true});
+  }
+  function closeListEditor(){ $("listEditorPanel").hidden=true; S.draft=null; S.dirty=false; S.editTarget={kind:"group"}; parkEditor(); }
+  $("newListBtn").onclick=()=>openListEditor(null);
+  $("closeListEditor").onclick=()=>{ if(S.dirty && !confirm("Descartar as alterações?")) return; closeListEditor(); $("listsEmpty").hidden=(S.wishlists||[]).length>0; };
 
   /* ================= TELA: CRIAR GRUPO ================= */
   async function renderNew(){
     showView("viewNew"); document.title="Criar amigo secreto";
-    const logged=!!S.session;
-    $("newTitle").textContent = logged ? "Dados do grupo" : "Entre para criar o seu grupo";
-    $("createForm").hidden=!logged;
-    $("newStep2").textContent = logged ? "2. Dados do grupo" : "2. Entre com seu e-mail";
-    // lembra a escolha feita antes do login (o login pelo link recarrega a página)
-    try{ const saved=localStorage.getItem("as2_mode"); const r=saved&&document.querySelector(`input[name="cMode"][value="${saved}"]`); if(r) r.checked=true; }catch(e){}
-    document.querySelectorAll('input[name="cMode"]').forEach(r=>r.onchange=()=>{ try{ localStorage.setItem("as2_mode",r.value); }catch(e){} });
-    if(!logged){ mountLogin($("newLoginSlot"), ()=>{}); $("myGroupsPanel").hidden=true; return; }
-    $("newLoginSlot").replaceChildren();
-    try{
-      const groups=await rpc("my_groups");
-      $("myGroupsPanel").hidden=!groups.length;
-      const box=$("myGroups"); box.replaceChildren();
-      groups.forEach(g=>{
-        const a=el("a"); a.href=`/amigo-secreto/g/${g.id}`;
-        const l=el("span"); l.append(el("b",null,g.name)); l.append(el("small",null,`  ${g.member_count} participante(s)${g.is_owner?" · criador":(g.is_admin?" · administrador":"")}`));
-        a.append(l, el("small",null,groupState(g).short));
-        box.append(a);
-      });
-    }catch(e){ $("myGroupsPanel").hidden=true; }
+    if(!$("cMe").value) $("cMe").value=userName();
+    await loadWishlists(true);
+    const has=(S.wishlists||[]).length>0;
+    $("cListWrap").hidden=!has;
+    if(has) fillListSelect($("cList"),{firstLabel:"Montar depois, só para este grupo", value:S.wishlists[0].id});
   }
   $("createForm").addEventListener("submit", async e=>{
     e.preventDefault(); if(S.busy) return;
@@ -553,8 +741,11 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     try{
       const modeEl=document.querySelector('input[name="cMode"]:checked');
       const id=await rpc("create_group",{p_name:$("cName").value, p_event_date:$("cDate").value||null, p_budget:$("cBudget").value, p_place:$("cPlace").value, p_max:max, p_display_name:$("cMe").value, p_mode:modeEl?modeEl.value:"draw"});
-      history.pushState({}, "", `/amigo-secreto/g/${id}`); S.editing=true; await route();
-      status("welcomeStatus","Grupo criado! Agora monte sua lista e mande o link para o grupo.","ok");
+      const wl=!$("cListWrap").hidden && $("cList").value;
+      if(wl) await rpc("use_wishlist_in_group",{p_group:id, p_wishlist:wl});
+      $("createForm").reset(); S.editing=!wl; S.touchedEdit=false;
+      go(`/amigo-secreto/g/${id}`);
+      status("welcomeStatus", wl ? "Grupo criado com a sua lista! Agora mande o link para o grupo." : "Grupo criado! Agora monte sua lista e mande o link para o grupo.","ok");
     }catch(err){ status("createStatus", errMsg(err), "err"); }
     finally{ S.busy=false; $("createBtn").disabled=false; }
   });
@@ -581,8 +772,10 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     });
     const st=groupState(g); s.append(el("span","chip-status "+st.cls, st.chip));
     // presente sempre começa fechado, sem o nome na página
-    closeGift();
-    $("revealPanel").hidden = isList(g) || g.status!=="drawn" || !me;
+    const canReveal = !isList(g) && g.status==="drawn" && !!me;
+    if(!canReveal || S.revealGroup!==g.id) closeGift();
+    S.revealGroup=g.id;
+    $("revealPanel").hidden = !canReveal;
 
     // compartilhar
     $("shareBox").hidden=!me;
@@ -606,7 +799,11 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       $("meEyebrow").textContent="Participe";
       if(g.status!=="open"){ $("meTitle").textContent="O sorteio já foi feito"; status("meIntro","Peça ao organizador para reabrir o grupo se você ainda quiser entrar."); return; }
       if(g.member_count>=g.max_participants){ $("meTitle").textContent="Grupo cheio"; status("meIntro","Este grupo já atingiu o número máximo de participantes."); return; }
-      $("meTitle").textContent="Entrar no grupo"; $("joinForm").hidden=false; return;
+      $("meTitle").textContent="Entrar no grupo"; $("joinForm").hidden=false;
+      if(!$("jName").value) $("jName").value=userName();
+      loadWishlists().then(()=>{ const has=(S.wishlists||[]).length>0; $("jListWrap").hidden=!has;
+        if(has) fillListSelect($("jList"),{firstLabel:"Montar uma lista nova só para este grupo", value:S.wishlists[0].id}); });
+      return;
     }
     // participante
     const fn=firstName(me.name);
@@ -620,13 +817,66 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
     $("revealBtn").hidden = isList(g) || g.status!=="drawn";
     $("shareMineBtn").hidden = !hasList;
     if(!hasList && S.editing===false && !S.touchedEdit) S.editing=true;
+    if(S.editTarget.kind!=="group"){ S.editTarget={kind:"group"}; S.draft=null; S.dirty=false; }
     if(!S.draft || !S.dirty){
       S.draft={name:me.name, shirt:me.shirt||"", shoe:me.shoe||"", avoid:me.avoid||"", items:(me.items&&me.items.length)?JSON.parse(JSON.stringify(me.items)):[blankItem()]};
-      renderEditor();
     }
+    mountEditor($("groupEditorSlot"));
     $("leaveBtn").hidden = d.is_owner || g.status!=="open";
     applyEditing();
+    renderListPick();
   }
+
+  /* ---------- qual lista este grupo usa ---------- */
+  async function renderListPick(){
+    const me=S.data && S.data.me; if(!me){ $("listPick").hidden=true; return; }
+    await loadWishlists();
+    const sel=$("gListSel");
+    fillListSelect(sel,{firstLabel: (S.wishlists||[]).length ? "Lista só deste grupo" : "Lista só deste grupo (nenhuma lista salva)", value:me.wishlist_id||""});
+    $("listPick").hidden=false;
+    $("saveAsListBtn").hidden = !!me.wishlist_id || !(me.items||[]).length || (S.wishlists||[]).length>=10;
+  }
+  $("gListSel").onchange=async()=>{
+    const v=$("gListSel").value||null, me=S.data&&S.data.me; if(!me) return;
+    if(S.dirty && !confirm("Você tem alterações não salvas na lista. Trocar mesmo assim?")){ $("gListSel").value=me.wishlist_id||""; return; }
+    try{
+      await rpc("use_wishlist_in_group",{p_group:S.groupId, p_wishlist:v});
+      S.draft=null; S.dirty=false; await loadWishlists(true); await renderGroup();
+      const w=(S.wishlists||[]).find(x=>x.id===v);
+      status("welcomeStatus", v ? `Agora este grupo usa a lista "${w?w.title:""}".` : "Este grupo agora tem uma lista própria (uma cópia, que você pode mudar só aqui).","ok");
+    }catch(err){ status("welcomeStatus",errMsg(err),"err"); $("gListSel").value=me.wishlist_id||""; }
+  };
+  $("saveAsListBtn").onclick=async()=>{
+    const me=S.data&&S.data.me; if(!me) return;
+    try{
+      const n=(S.wishlists||[]).length;
+      const id=await rpc("save_wishlist",{p_id:null, p_title: n?`Minha lista ${n+1}`:"Minha lista", p_shirt:me.shirt||"", p_shoe:me.shoe||"", p_avoid:me.avoid||"", p_items:me.items||[]});
+      await rpc("use_wishlist_in_group",{p_group:S.groupId, p_wishlist:id});
+      S.draft=null; await loadWishlists(true); await renderGroup();
+      status("welcomeStatus","Lista salva em \"Minhas listas\". Agora você pode usá-la em outros amigos secretos e renomeá-la por lá.","ok");
+    }catch(err){ status("welcomeStatus",errMsg(err),"err"); }
+  };
+
+  /* ---------- editor: o mesmo formulário serve ao grupo e a "Minhas listas" ---------- */
+  function mountEditor(slot){
+    const f=$("editor"); if(f.parentElement!==slot){ slot.append(f); status("saveStatus",""); }
+    const isListEdit=S.editTarget.kind==="list";
+    $("fNameLbl").textContent=isListEdit?"Nome da lista":"Seu nome";
+    $("fName").maxLength=isListEdit?40:60;
+    $("fName").placeholder=isListEdit?"ex.: Família":"";
+    $("saveBtn").textContent=isListEdit?"Salvar lista":"Salvar minha lista";
+    const me=S.data&&S.data.me;
+    const linked=!isListEdit && me && me.wishlist_id;
+    if(linked){
+      const w=(S.wishlists||[]).find(x=>x.id===me.wishlist_id);
+      const others=w?(w.groups||[]).filter(g=>g.id!==S.groupId).length:0;
+      status("syncNote", `Você está editando a lista "${me.wishlist_title||(w&&w.title)||""}"`+(others?`, usada também em ${others} outro(s) grupo(s). As mudanças aparecem em todos.`:". As mudanças aparecem em todos os grupos que usarem esta lista."),"warn");
+      $("syncNote").hidden=false;
+    } else { $("syncNote").hidden=true; }
+    if(isListEdit){ $("leaveBtn").hidden=true; f.hidden=false; }
+    renderEditor();
+  }
+  function parkEditor(){ const f=$("editor"); $("editorHome").append(f); f.hidden=true; }
 
   function applyEditing(){
     $("editor").hidden=!S.editing;
@@ -659,8 +909,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $("joinForm").addEventListener("submit", async e=>{
     e.preventDefault(); if(S.busy) return;
     S.busy=true; $("joinBtn").disabled=true; status("joinStatus","Entrando…");
-    try{ await rpc("join_group",{p_id:S.groupId, p_display_name:$("jName").value}); S.editing=true; await renderGroup();
-         status("welcomeStatus","Você entrou no grupo! Agora monte sua lista.","ok"); }
+    const wl=!$("jListWrap").hidden && $("jList").value || null;
+    try{ await rpc("join_group",{p_id:S.groupId, p_display_name:$("jName").value, p_wishlist:wl}); S.editing=!wl; S.draft=null; await renderGroup();
+         status("welcomeStatus", wl?"Você entrou no grupo com a sua lista salva!":"Você entrou no grupo! Agora monte sua lista.","ok"); }
     catch(err){ status("joinStatus", errMsg(err), "err"); }
     finally{ S.busy=false; $("joinBtn").disabled=false; }
   });
@@ -713,13 +964,21 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   $("editor").addEventListener("submit", async e=>{
     e.preventDefault(); if(S.busy) return;
     readForm(); const d=S.draft;
-    if(!d.name){ status("saveStatus",ERR.NOME_INVALIDO,"err"); $("fName").focus(); return; }
+    const isListEdit=S.editTarget.kind==="list";
+    if(!d.name){ status("saveStatus",isListEdit?"Dê um nome à lista.":ERR.NOME_INVALIDO,"err"); $("fName").focus(); return; }
     const items=d.items.filter(x=>x.title).map(x=>({id:x.id,title:x.title,link:safeUrl(x.link)||"",price:fmtPrice(x.price),priority:x.priority,note:x.note}));
     if(!items.length){ status("saveStatus",ERR.LISTA_VAZIA,"err"); return; }
     const badLink=d.items.some(x=>x.link && !safeUrl(x.link));
     S.busy=true; $("saveBtn").disabled=true; status("saveStatus","Salvando…");
     try{
+      if(isListEdit){
+        await rpc("save_wishlist",{p_id:S.editTarget.id,p_title:d.name,p_shirt:d.shirt,p_shoe:d.shoe,p_avoid:d.avoid,p_items:items});
+        closeListEditor(); await renderLists();
+        status("listsStatus", badLink?"Lista salva. Um link não parecia válido e ficou de fora.":"Lista salva!", badLink?"warn":"ok");
+        return;
+      }
       await rpc("save_my_list",{p_id:S.groupId,p_name:d.name,p_shirt:d.shirt,p_shoe:d.shoe,p_avoid:d.avoid,p_items:items});
+      if(S.data.me && S.data.me.wishlist_id) S.wishlists=null;
       S.dirty=false; S.editing=false; S.touchedEdit=true; S.draft=null;
       await renderGroup();
       if(S.data.me) S.open.add(S.data.me.member_id); renderPeople();
@@ -934,10 +1193,24 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   }
   window.addEventListener("hashchange", openFromHash);
 
+  const PRIVATE={home:1,lists:1,new:1};
   async function route(){
-    S.route=parseRoute(); $("logoutBtn").hidden=!S.session;
-    if(S.route.name==="group"){ S.groupId=S.route.id; await renderGroup(); openFromHash(); }
-    else { await renderNew(); }
+    S.route=parseRoute();
+    $("navGuest").hidden=!!S.session; $("navUser").hidden=!S.session;
+    document.querySelectorAll("#navUser [data-route]").forEach(a=>a.classList.toggle("current", a.dataset.route===S.route.name));
+    if(S.route.name!=="lists" && S.editTarget.kind==="list"){ $("listEditorPanel").hidden=true; S.editTarget={kind:"group"}; S.draft=null; S.dirty=false; parkEditor(); }
+    if(PRIVATE[S.route.name] && !S.session){
+      const next=location.pathname;
+      history.replaceState({}, "", "/amigo-secreto/entrar?next="+encodeURIComponent(next)); S.route={name:"login"};
+    }
+    switch(S.route.name){
+      case "group": S.groupId=S.route.id; await renderGroup(); openFromHash(); break;
+      case "login": renderAuth("login"); break;
+      case "signup": renderAuth("signup"); break;
+      case "lists": await renderLists(); break;
+      case "new": await renderNew(); break;
+      default: await renderHome();
+    }
   }
   window.addEventListener("popstate", route);
 
@@ -949,7 +1222,13 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   S.sb.auth.onAuthStateChange((evt, session)=>{
     const changed = (!!S.session) !== (!!session);
     S.session=session;
-    if(changed){ S.draft=null; S.dirty=false; S.editing=false; S.touchedEdit=false; route(); }
+    if(changed){
+      S.draft=null; S.dirty=false; S.editing=false; S.touchedEdit=false; S.wishlists=null;
+      // acabou de entrar pela tela de login/cadastro: vai para onde queria ir
+      if(session && S.route && (S.route.name==="login"||S.route.name==="signup")){ history.replaceState({}, "", nextParam()); }
+      if(!session && S.route && PRIVATE[S.route.name]){ history.replaceState({}, "", "/amigo-secreto/entrar"); }
+      route();
+    }
   });
   setInterval(()=>{ if(document.visibilityState==="visible" && S.route && S.route.name==="group" && !S.dirty && !S.editing) renderGroup(); }, 60000);
 })();
