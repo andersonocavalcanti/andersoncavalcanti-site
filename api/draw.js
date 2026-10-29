@@ -69,8 +69,10 @@ module.exports = async (req, res) => {
     to: [row.giver_email],
     subject: `Seu amigo secreto em "${group.name}"`,
     html: emailHtml({ giver: row.giver_name, receiver: row.receiver_name, group, link }),
-    text: `Olá, ${row.giver_name}! Seu amigo secreto em "${group.name}" é: ${row.receiver_name}. ` +
-          `Veja a lista de desejos: ${link}`
+    // o nome fica no fim do texto, longe da prévia da caixa de entrada
+    text: `Olá, ${row.giver_name}! O sorteio de "${group.name}" foi feito.\n\n` +
+          `Abra o presente na página do grupo: ${link}\n\n\n\n\n` +
+          `(Seu amigo secreto: ${row.receiver_name})`
   }));
 
   // Resend aceita até 100 e-mails por chamada em lote
@@ -113,7 +115,10 @@ function emailHtml({ giver, receiver, group, link }) {
     group.budget ? `<b>Valor sugerido:</b> ${esc(group.budget)}` : '',
     group.place ? `<b>Local:</b> ${esc(group.place)}` : ''
   ].filter(Boolean).join('<br>');
+  // preheader: é o texto que a caixa de entrada mostra na prévia, sem o nome
+  const preheader = 'O sorteio foi feito. Abra o e-mail longe de curiosos para ver quem você tirou.';
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F2F5F1;font-family:Arial,Helvetica,sans-serif;color:#16261E">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F2F5F1;opacity:0">${preheader}${'&#847;&zwnj;&nbsp;'.repeat(60)}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px"><tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFFFF;border-radius:14px;padding:32px">
     <tr><td style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#56685D">${esc(group.name)}</td></tr>
